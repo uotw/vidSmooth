@@ -1,1 +1,1 @@
-# SonoGIF
+# vidSmooth
