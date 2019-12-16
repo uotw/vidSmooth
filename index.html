@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="UTF-8">
+      <title>vidSmoother</title>
+      <!-- Auth0 Lock script -->
+      <!-- Setting the right viewport -->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      <link rel="stylesheet" type="text/css" href="css/style.css">
+      <link rel="stylesheet" type="text/css" href="css/flatbuttons.css">
+      <link rel="stylesheet" type="text/css" href="css/nouislider.min.css">
+   </head>
+   <body>
+      <div id=help>?</div>
+      <div id=helpmodalwrap>
+         <div id=helpmodal>
+            <ul>
+               <li>This app does one job: to stabilize video</li>
+               <li>Under the hood, vidSmoother uses electron and ffmpeg</li>
+            </ul>
+         </div>
+      </div>
+      <div id=openmodalwrap>
+         <div id=openmodal>vidSmoother</div>
+      </div>
+      <div id="maintitle">
+         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 56 70" version="1.1" x="0px" y="0px">
+            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+               <g fill="#000000" fill-rule="nonzero">
+                  <path d="M42,35 L42,21 C41.9992838,20.4480122 41.5519878,20.0007162 41,20 L15,20 C14.4480122,20.0007162 14.0007162,20.4480122 14,21 L14,35 C14.0007162,35.5519878 14.4480122,35.9992838 15,36 L41,36 C41.5519878,35.9992838 41.9992838,35.5519878 42,35 Z M28,34 C24.6862915,34 22,31.3137085 22,28 C22,24.6862915 24.6862915,22 28,22 C31.3137085,22 34,24.6862915 34,28 C33.9963791,31.3122075 31.3122075,33.9963791 28,34 Z"/>
+                  <polygon points="31.219 16 24.781 16 24.281 18 31.719 18"/>
+                  <circle cx="28" cy="28" r="4"/>
+                  <path d="M28,-1.11022302e-15 C12.536027,-6.21724894e-15 -5.10702591e-15,12.536027 -7.10542736e-15,28 C-9.1038288e-15,43.463973 12.536027,56 28,56 C43.463973,56 56,43.463973 56,28 C55.9826624,12.5432142 43.4567858,0.0173375993 28,-1.11022302e-15 Z M41,14 C44.8641953,14.0043371 47.9956629,17.1358047 48,21 C48,21.5522847 47.5522847,22 47,22 C46.4477153,22 46,21.5522847 46,21 C45.9967599,18.2399195 43.7600805,16.0032401 41,16 C40.4477153,16 40,15.5522847 40,15 C40,14.4477153 40.4477153,14 41,14 Z M15,14 C15.5522847,14 16,14.4477153 16,15 C16,15.5522847 15.5522847,16 15,16 C12.2399195,16.0032401 10.0032401,18.2399195 10,21 C10,21.5522847 9.55228475,22 9,22 C8.44771525,22 8,21.5522847 8,21 C8.00433715,17.1358047 11.1358047,14.0043371 15,14 Z M15,42 C11.1358047,41.9956629 8.00433715,38.8641953 8,35 C8,34.4477153 8.44771525,34 9,34 C9.55228475,34 10,34.4477153 10,35 C10.0032401,37.7600805 12.2399195,39.9967599 15,40 C15.5522847,40 16,40.4477153 16,41 C16,41.5522847 15.5522847,42 15,42 Z M15,38 C13.3438951,37.9981923 12.0018077,36.6561049 12,35 L12,21 C12.0018077,19.3438951 13.3438951,18.0018077 15,18 L22.21912,18 L23.02979,14.75732 C23.1412265,14.3122396 23.5411813,14.0000456 24,14 L32,14 C32.4588187,14.0000456 32.8587735,14.3122396 32.97021,14.75732 L33.78088,18 L41,18 C42.6561049,18.0018077 43.9981923,19.3438951 44,21 L44,35 C43.9981923,36.6561049 42.6561049,37.9981923 41,38 L15,38 Z M41,42 C40.4477153,42 40,41.5522847 40,41 C40,40.4477153 40.4477153,40 41,40 C43.7600805,39.9967599 45.9967599,37.7600805 46,35 C46,34.4477153 46.4477153,34 47,34 C47.5522847,34 48,34.4477153 48,35 C47.9956629,38.8641953 44.8641953,41.9956629 41,42 Z"/>
+               </g>
+            </g>
+         </svg>
+         <h1>vidSmoother</h1>
+         <div id="copyright">
+            Copyright 2019 Ben C. Smith, MD, FACEP
+         </div>
+      </div>
+      <div id="filelistwrap">
+         <div id="drag">
+            <div>Drag and drop any video file here to start</div>
+            <p>Supported file types: mp4, m4v, avi, wmv, mov, flv, mpg, mpeg, gif</p>
+         </div>
+      </div>
+      <div id="loading-container">
+         <div class="loading"></div>
+         <div id="loading-text">Generating Preview</div>
+      </div>
+      <div id=bodywrap>
+         <div id=options>
+            <h4>Smoothing</h4>
+            <div id=smooth></div>
+            <h4>Max Shift</h4>
+            <div id=maxshift></div>
+            <h4>Max Angle</h4>
+            <div id=maxangle></div>
+            <hr>
+            <h4>Crop Method</h4>
+            <select id=crop>
+               <option value=keep>crop video</option>
+               <option value=black>black border</option>
+            </select>
+            <hr>
+            <h4>Camera Path</h4>
+            <select id=camera>
+               <option value=gauss>gaussian</option>
+               <option value=avg>average</option>
+            </select>
+            <hr>
+            <h4>Simulate Tripod</h4>
+            <select id=tripod>
+               <option value=0>off</option>
+               <option value=1>on</option>
+            </select>
+            <hr>
+         </div>
+         <div id="canvaswrap">
+            <canvas id="myCanvas" width="500" height="200"></canvas>
+         </div>
+         <div id="selecttrim">
+            <div class="slidecontainer">
+               <div id="scrubber"></div>
+            </div>
+         </div>
+         <div id="myProgress">
+            <div id="myBar">
+               <div id="label">0%</div>
+            </div>
+         </div>
+         <div id=result style="display:none"></div>
+         <div id=selectendpoint>
+            <div id=sizeenpoint>
+               <p>file size</p>
+               <div class=eg>eg 15 MB, for Twitter</div>
+               <img src="img/videosize2.png" id=videofile1>
+               <img src="img/videosize1.png" id=videofile2>
+            </div>
+            <div id=dimensionenpoint>
+               <p>dimensions</p>
+               <div class=eg>eg 640x480, for web</div>
+               <img src="img/dimensions2.png" id=dimensions1>
+               <img src="img/dimensions1.png" id=dimensions2>
+            </div>
+         </div>
+         <div id=gifmbwrap>
+            <div id=selectedmb><span id=selectedmbnumber>15</span><span id=mblabel>MB</span></div>
+            <div id=gifmbwrapmessage>Optimal size for Twitter is 15MB</div>
+            <div id=gifmb></div>
+         </div>
+         <div class="dimentionsselectioncontainer">
+            <div id=dimensionstext></div>
+            <div id="videoheightselector"></div>
+            <div id="videowidthselector"></div>
+         </div>
+      </div>
+      <div id=sidebar>
+         <div id="message">Select the preview clip</div>
+         <div id=finalsize></div>
+         <div id=poster></div>
+         <button type="button" class="rightbtn btn btn-outlined btn-black btn-lg" id="sample" style="display:none" >Sample</button>
+         <button type="button" class="rightbtn btn btn-outlined btn-black btn-lg" id="fullvid" style="display:none" >Full Video</button>
+         <button type="button" class="rightbtn btn btn-outlined btn-black btn-lg" id="gifok" style="display:none" >Make Gif</button>
+         <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="restart"  style="display:none">Start Over</button>
+         <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="cancel"  style="display:none">Cancel</button>
+         <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="changesettings" style="display:none">Change Settings</button>
+         <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="save" style="display:none">Save</button>
+         <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="previewclip" style="display:none">Play</button>
+         <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="createsample" style="display:none">Create Sample</button>
+         <div id="postSaveMessage" style="display:none">
+            Add the hashtag #vidSmoother when you upload on twitter so others can find your ultrasound
+         </div>
+      </div>
+      <div id=fadetoblack></div>
+   </body>
+   <script>
+      // You can also require other files to run in this process
+      window.$ = window.jQuery = require('jquery');
+      require('./renderer.js');
+      require('./js/cropselect.js');
+   </script>
+   <script type="text/javascript" src="js/nouislider.min.js"></script>
+   <script type="text/javascript" src="js/slider.js"></script>
+   <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+   <script>if (window.module) module = window.module; var $ = require('jQuery');</script>
+   <script>window.twttr = (function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0],
+        t = window.twttr || {};
+      if (d.getElementById(id)) return t;
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://platform.twitter.com/widgets.js";
+      fjs.parentNode.insertBefore(js, fjs);
+
+      t._e = [];
+      t.ready = function(f) {
+        t._e.push(f);
+      };
+
+      return t;
+      }(document, "script", "twitter-wjs"));
+   </script>
+</html>
