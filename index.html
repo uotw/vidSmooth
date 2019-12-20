@@ -2,7 +2,7 @@
 <html>
    <head>
       <meta charset="UTF-8">
-      <title>vidSmoother</title>
+      <title>vidSmooth</title>
       <!-- Auth0 Lock script -->
       <!-- Setting the right viewport -->
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -16,12 +16,12 @@
          <div id=helpmodal>
             <ul>
                <li>This app does one job: to stabilize video</li>
-               <li>Under the hood, vidSmoother uses electron and ffmpeg</li>
+               <li>Under the hood, vidSmooth uses electron and ffmpeg</li>
             </ul>
          </div>
       </div>
       <div id=openmodalwrap>
-         <div id=openmodal>vidSmoother</div>
+         <div id=openmodal>vidSmooth</div>
       </div>
       <div id="maintitle">
          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 56 70" version="1.1" x="0px" y="0px">
@@ -34,7 +34,7 @@
                </g>
             </g>
          </svg>
-         <h1>vidSmoother</h1>
+         <h1>vidSmooth</h1>
          <div id="copyright">
             Copyright 2019 Ben C. Smith, MD, FACEP
          </div>
@@ -51,31 +51,44 @@
       </div>
       <div id=bodywrap>
          <div id=options>
-            <h4>Smoothing</h4>
+            <h4>Accuracy</h4>
+            <div id=accuracy></div>
+            <h4>Shakiness</h4>
+            <div id=shakiness></div>
+            <h4>Smoothing (frames)</h4>
             <div id=smooth></div>
-            <h4>Max Shift</h4>
+            <h4>Max Shift (pixels)</h4>
             <div id=maxshift></div>
-            <h4>Max Angle</h4>
+            <h4>Max Angle (degrees)</h4>
             <div id=maxangle></div>
             <hr>
+      <table>
+         <tbody>
+         <tr>
+         <td class=dropdowns>
             <h4>Crop Method</h4>
             <select id=crop>
                <option value=keep>crop video</option>
                <option value=black>black border</option>
             </select>
-            <hr>
+         </td>
+         <td class=dropdowns>
             <h4>Camera Path</h4>
             <select id=camera>
                <option value=gauss>gaussian</option>
                <option value=avg>average</option>
             </select>
-            <hr>
+         </td>
+         <td class=dropdowns>
             <h4>Simulate Tripod</h4>
             <select id=tripod>
                <option value=0>off</option>
                <option value=1>on</option>
             </select>
-            <hr>
+         </td>
+      </tr>
+   </tbody>
+      </table>
          </div>
          <div id="canvaswrap">
             <canvas id="myCanvas" width="500" height="200"></canvas>
@@ -91,30 +104,6 @@
             </div>
          </div>
          <div id=result style="display:none"></div>
-         <div id=selectendpoint>
-            <div id=sizeenpoint>
-               <p>file size</p>
-               <div class=eg>eg 15 MB, for Twitter</div>
-               <img src="img/videosize2.png" id=videofile1>
-               <img src="img/videosize1.png" id=videofile2>
-            </div>
-            <div id=dimensionenpoint>
-               <p>dimensions</p>
-               <div class=eg>eg 640x480, for web</div>
-               <img src="img/dimensions2.png" id=dimensions1>
-               <img src="img/dimensions1.png" id=dimensions2>
-            </div>
-         </div>
-         <div id=gifmbwrap>
-            <div id=selectedmb><span id=selectedmbnumber>15</span><span id=mblabel>MB</span></div>
-            <div id=gifmbwrapmessage>Optimal size for Twitter is 15MB</div>
-            <div id=gifmb></div>
-         </div>
-         <div class="dimentionsselectioncontainer">
-            <div id=dimensionstext></div>
-            <div id="videoheightselector"></div>
-            <div id="videowidthselector"></div>
-         </div>
       </div>
       <div id=sidebar>
          <div id="message">Select the preview clip</div>
@@ -124,13 +113,14 @@
          <button type="button" class="rightbtn btn btn-outlined btn-black btn-lg" id="fullvid" style="display:none" >Full Video</button>
          <button type="button" class="rightbtn btn btn-outlined btn-black btn-lg" id="gifok" style="display:none" >Make Gif</button>
          <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="restart"  style="display:none">Start Over</button>
+         <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="savesample" style="display:none">Save Sample</button>
          <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="cancel"  style="display:none">Cancel</button>
          <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="changesettings" style="display:none">Change Settings</button>
          <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="save" style="display:none">Save</button>
          <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="previewclip" style="display:none">Play</button>
          <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="createsample" style="display:none">Create Sample</button>
          <div id="postSaveMessage" style="display:none">
-            Add the hashtag #vidSmoother when you upload on twitter so others can find your ultrasound
+            Add the hashtag #vidSmooth when you upload on twitter so others can find your ultrasound
          </div>
       </div>
       <div id=fadetoblack></div>

@@ -27,7 +27,7 @@ function createWindow () {
     'width': mainWindowState.width,
     'height': mainWindowState.height,
     'minWidth':950,
-    'minHeight':700,
+    'minHeight':736,
     'show':false
 
   });
@@ -69,6 +69,7 @@ mainWindow.webContents.on('did-finish-load', function() {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null
+    app.quit();
   });
    mainWindow.on('resize', function (event) {
 /*

@@ -1,11 +1,10 @@
-// This file is required by the index.html file and will
-// be executed in the renderer process for that window.
-// All of the Node.js APIs are available in this process.
 const {
     desktopCapturer,
     screen
 } = require('electron');
 var remote = require('electron').remote;
+var pid = remote.process.pid;
+//console.log(remote.process.pid);
 var dialog = remote.dialog;
 var $ = require('jQuery');
 var path = require('path');
@@ -143,7 +142,7 @@ $("#filelistwrap").on('drop', function(event) {
     event.preventDefault();
     filelist = [];
     var files = event.originalEvent.dataTransfer.files;
-    spawn(appswitchpath, ['-a', 'sonogif']);
+    spawn(appswitchpath, ['-p', pid]);
     //spawn(appswitch -a "ClipDeidentifier"
     for (var i = 0; i < files.length; i++) {
         var name = files[i].name;
@@ -190,7 +189,7 @@ $("#openmodalwrap").on('drop', function(event) {
     event.preventDefault();
     filelist = [];
     var files = event.originalEvent.dataTransfer.files;
-    spawn(appswitchpath, ['-a', 'sonogif']);
+    spawn(appswitchpath, ['-p', pid]);
     //spawn(appswitch -a "ClipDeidentifier"
     for (var i = 0; i < files.length; i++) {
         var name = files[i].name;
@@ -261,11 +260,13 @@ function timeString2ms(a, b, c) { // time(HH:MM:SS.mss)
         c
 }
 var child;
+
 function customSpawn(command, args) {
     return () => new Promise((resolve, reject) => {
         child = spawn(command, args, {
             windowsVerbatimArguments: true
         });
+        console.log(command + args.join(' '));
         var length = null;
         var currenttime = 0;
         var regex = /Duration:(.*), start:/;
@@ -292,6 +293,18 @@ function customSpawn(command, args) {
                     }
                 }
                 if (fullviding) {
+                    // window.t1 = performance.now();
+                    // //var left=(window.t1-window.t0)*stillcount/(i*1000);
+                    // var duration = (window.t1-window.t0)/1000;
+                    // var left=Math.round(duration*stillcount/i-duration);
+                    // if(left>59){
+                    //     var secs=left % 60;
+                    //     var min=Math.floor(left/60);
+                    //     var lefttext=min+' min '+secs+' sec left';
+                    // } else {
+                    //     var lefttext=left+' secs left';
+                    // }
+
                     if (pass == 1) {
                         var offset = 0;
                         var mult = 0.5;
@@ -300,7 +313,12 @@ function customSpawn(command, args) {
                         var mult = 0.5;
                     }
                     var percdone = offset + mult * currenttime / length;
-                    $('#message').html('smoothing your video<br>['+roundNumber(percdone*100,2)+'% done]');
+                    if (!isNaN(percdone)) {
+                        var perctext = '<br>[' + roundNumber(percdone * 100, 2) + '% done]';
+                    } else {
+                        var perctext = '';
+                    }
+                    $('#message').html('smoothing your video' + perctext);
                 } else {
                     var offset = 0;
                     var mult = 1;
@@ -309,8 +327,7 @@ function customSpawn(command, args) {
                     var percdone = offset + mult * currenttime / length;
                     var myqueue = [];
                     myqueue.push(progress(percdone));
-                    queue(myqueue).then(([cmd, args]) => {
-                    }).catch(TypeError, function(e) {}).catch(err => console.log(err));
+                    queue(myqueue).then(([cmd, args]) => {}).catch(TypeError, function(e) {}).catch(err => console.log(err));
                 }
             }
         });
@@ -326,17 +343,18 @@ function customSpawn(command, args) {
         });
     });
 }
+
 function roundNumber(num, scale) {
-  if(!("" + num).includes("e")) {
-    return +(Math.round(num + "e+" + scale)  + "e-" + scale);
-  } else {
-    var arr = ("" + num).split("e");
-    var sig = ""
-    if(+arr[1] + scale > 0) {
-      sig = "+";
+    if (!("" + num).includes("e")) {
+        return +(Math.round(num + "e+" + scale) + "e-" + scale);
+    } else {
+        var arr = ("" + num).split("e");
+        var sig = ""
+        if (+arr[1] + scale > 0) {
+            sig = "+";
+        }
+        return +(Math.round(+arr[0] + "e" + sig + (+arr[1] + scale)) + "e-" + scale);
     }
-    return +(Math.round(+arr[0] + "e" + sig + (+arr[1] + scale)) + "e-" + scale);
-  }
 }
 
 function progress(i) {
@@ -345,27 +363,32 @@ function progress(i) {
         var elem = document.getElementById("myBar");
         elem.style.width = 100 * i + '%';
         console.log('perc: ' + (100 * i));
-        	resolve(i);
+        resolve(i);
     });
 }
 
 function setupselect() {
     return () => new Promise((resolve, reject) => {
         var infile = filelist[0];
-        var ffprobe = spawnsync(ffprobepath, ['-print_format', 'json', '-show_streams', '-i', infile]);
+        var ffprobe = spawnsync(ffprobepath, ['-select_streams', 'v:0', '-print_format', 'json', '-show_streams', '-i', infile]);
         var ffprobeOb = JSON.parse(ffprobe.stdout);
+        //console.log(ffprobeOb.streams[0]);
         window.width = ffprobeOb.streams[0].width;
         window.height = ffprobeOb.streams[0].height;
         aspect = window.width / window.height;
+        if(ffprobeOb.streams[0].tags.rotate==90 || ffprobeOb.streams[0].tags.rotate==270 ){
+            aspect = 1/aspect;
+        }
+        //console.log(aspect);
         window.duration = Number(ffprobeOb.streams[0].duration);
         window.fps = precisionRound(eval(ffprobeOb.streams[0].r_frame_rate), 4);
-        if (!window.duration) {
-            var tempfile = workdir + '/temp.mp4';
-            var dur = spawnsync(ffprobepath, ['-print_format', 'json', '-show_streams', '-i', tempfile]);
-            var durOB = JSON.parse(dur.stdout);
-            console.log(durOB.streams[0].duration);
-            window.duration = Number(durOB.streams[0].duration);
-        }
+        // if (!window.duration) {
+        //     var tempfile = workdir + '/temp.mp4';
+        //     var dur = spawnsync(ffprobepath, ['-print_format', 'json', '-show_streams', '-i', tempfile]);
+        //     var durOB = JSON.parse(dur.stdout);
+        //     console.log(durOB.streams[0].duration);
+        //     window.duration = Number(durOB.streams[0].duration);
+        // }
         window.codec = ffprobeOb.streams[0].codec_name;
         window.tpf = 1 / eval(window.fps);
         var canvasheight = parseInt(window.height * 600 / window.width);
@@ -374,23 +397,19 @@ function setupselect() {
     });
 
 }
-// var sample = 0;
+
 function createsample() {
-    //alert(window.timestart+":"+window.timeend);
     $('#message').html('creating your sample');
     fullviding = previewing = false;
     sampling = true;
     $('#helpmodal').html('<ul><li>be patient while I prepare your sample</li><li>If your clip is long or computer slow, get a coffee</li></ul>');
     fileonly = path.basename(filelist[0], path.extname(filelist[0]));
-    //giffile = workdir + '/' + fileonly + '.gif';
-    //$('#loading-container').show();
     $('#myProgress').show();
     $('button').hide();
     if (!fs.existsSync(workdir)) {
         fs.mkdirSync(workdir);
     }
     var myqueue = [];
-    //selectedsmooth, selectedmaxshift, selectedMaxAngle;
     if (selectedMaxAngle == 360) {
         selectedMaxAngle = -1;
     } else {
@@ -403,21 +422,25 @@ function createsample() {
     var transformvf = ' vidstabdetect -f null - ';
     var camera = $('#camera').val();
     var crop = $('#crop').val();
-    //var tripod = $('#tripod').val();
     var trf = workdir + '/transforms.trf';
     var deshake = ',vidstabtransform=' + 'optalgo=' + camera + ':crop=' + crop + ':smoothing=' + selectedsmooth + ':input=' + trf + ':relative=1:maxshift=' + selectedmaxshift + ':maxangle=' + selectedMaxAngle + ',unsharp=5:5:0.8:3:3:0.4';
     var vftext = 'scale=iw*min(1\\,min(600/iw\\,480/ih)):-1,setsar=1,scale=trunc(in_w/2)*2:trunc(in_h/2)*2';
-    var transformvf = vftext + ',vidstabdetect=' + 'result=' + trf; //+' -f null - ';
+    var transformvf = vftext + ',vidstabdetect=' + 'result=' + trf + ':shakiness=' + selectedshakiness + ':accuracy=' + selectedaccuracy; //+' -f null - ';
     var samplefile = workdir + '/sample.mp4';
     var mergedfile = workdir + '/merged.mp4';
     var clippedOriginal = workdir + '/clipped.mp4';
+    if (aspect > 1){
+        var stack = "vstack";
+    } else {
+        var stack = "hstack";
+    }
     myqueue.push(progress(0));
     myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-']));
     myqueue.push(progress(0.33));
     myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', vftext + deshake, samplefile]));
     myqueue.push(progress(0.66));
     myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', vftext, clippedOriginal]));
-    myqueue.push(customSpawn(ffmpegpath, ['-i', clippedOriginal, '-i', samplefile, '-y', '-filter_complex', 'vstack', mergedfile]));
+    myqueue.push(customSpawn(ffmpegpath, ['-i', clippedOriginal, '-i', samplefile, '-y', '-filter_complex', stack, mergedfile]));
     myqueue.push(progress(1));
     myqueue.push(sampledump(1));
     queue(myqueue).then(([cmd, args]) => {
@@ -441,10 +464,11 @@ function sampledump() {
         var videoheight = parseInt(2 * window.height * 600 / window.width) + 'px';
         var cliphtml = '<video class=sample loop height=' + videoheight + ' width="600px" autoplay loop controls><source src="' + workdir + '/merged.mp4?v' + seconds + '" type=video/mp4></video>';
         $('#myProgress').hide();
+        $('#message').hide();
         $('video').remove();
         $('.slidecontainer').hide();
         $('#selecttrim').prepend(cliphtml);
-        $('#selecttrim,#restart,#changesettings,#fullvid').show();
+        $('#selecttrim,#restart,#changesettings,#fullvid,#savesample').show();
         $(document).keydown(function(e) {
             if (e.which == 32) { //up
                 e.preventDefault();
@@ -569,6 +593,7 @@ $('#cancel').click(function() {
 
 var fullvid = 0;
 $('#fullvid').click(function() {
+    window.t0 = performance.now();
     fullviding = 1;
     $('#options').hide();
     $('button').hide();
@@ -603,7 +628,7 @@ $('#fullvid').click(function() {
     var tripod = $('#tripod').val();
     var trf = workdir + '/transforms.trf';
     var deshake = 'vidstabtransform=' + 'optalgo=' + camera + ':crop=' + crop + ':smoothing=' + selectedsmooth + ':input=' + trf + ':relative=1:maxshift=' + selectedmaxshift + ':maxangle=' + selectedMaxAngle + ',unsharp=5:5:0.8:3:3:0.4';
-    var transformvf = 'vidstabdetect=result=' + trf; //+' -f null - ';
+    var transformvf = 'vidstabdetect=' + 'result=' + trf + ':shakiness=' + selectedshakiness + ':accuracy=' + selectedaccuracy;
     var finalFile = workdir + '/final.mp4';
     myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-']));
     myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-y', '-vf', deshake, finalFile]));
@@ -645,12 +670,12 @@ function showfinal(i) {
         }
         //$('#message').delay(timeleft).html('Done! Drag your gif to an app, location, or tweet');
         $("#message").show();
-        $("#message").html('Done!');// Drag your gif to an app, location, or tweet');
+        $("#message").html('Done!'); // Drag your gif to an app, location, or tweet');
         //$('#finalsize').html(size + 'MB/' + calcgifwidth + 'x' + calcgifheight + '/' + precisionRound(giflength, 2) + 's');
         var seconds = new Date().getTime() / 1000;
         var cliphtml = '<video class=sample id=final oop height=auto width="100%" autoplay loop controls><source src="' + workdir + '/final.mp4?v' + seconds + '" type=video/mp4></video>';
 
-        $('#result').append(cliphtml).css('display','block');
+        $('#result').append(cliphtml).css('display', 'block');
         document.getElementById('final').ondragstart = (event) => {
             event.preventDefault()
             ipcRenderer.send('ondragstart', workdir + '/final.mp4')
@@ -668,26 +693,25 @@ function showfinal(i) {
 
 $('#save').click(function() {
     fileonly = path.basename(filelist[0], path.extname(filelist[0]));
-     filename = dialog.showSaveDialog({
-     	  title: 'Save your file',
+    filename = dialog.showSaveDialog({
+        title: 'Save your file',
         defaultPath: '~/Desktop/' + fileonly + '_smoothed.mp4'
-     }
-    ).then(result => {
-      filename = result.filePath;
-      if (filename === undefined) {
-        console.log('the user clicked the btn but didn\'t created a file');
-        return;
-      }
-      var filearr = filename.toLowerCase().split('.');
+    }).then(result => {
+        filename = result.filePath;
+        if (filename === undefined) {
+            console.log('the user clicked the btn but didn\'t created a file');
+            return;
+        }
+        var filearr = filename.toLowerCase().split('.');
         var ext = filearr.pop();
         if (ext != 'mp4') {
             filename = filename + '.mp4';
         }
-      var finalfile = workdir + '/final.mp4';
-      fs.copyFile(finalfile, filename, (err) => {
-    			if (err) throw err;
-    				console.log('source.txt was copied to destination.txt');
-				});
+        var finalfile = workdir + '/final.mp4';
+        fs.copyFile(finalfile, filename, (err) => {
+            if (err) throw err;
+            console.log('source.txt was copied to destination.txt');
+        });
         shell.openItem(path.dirname(filename));
         spawn(appswitchpath, ['-a', 'Finder']);
         $('#save').html('Saved');
@@ -695,7 +719,40 @@ $('#save').click(function() {
         //$('#save').hide();
         //$('#postSaveMessage').show();
     }).catch(err => {
-      console.log(err)
+        console.log(err)
+    })
+
+});
+
+$('#savesample').click(function() {
+    fileonly = path.basename(filelist[0], path.extname(filelist[0]));
+    filename = dialog.showSaveDialog({
+        title: 'Save your file',
+        defaultPath: '~/Desktop/' + fileonly + '_sample_smoothed.mp4'
+    }).then(result => {
+        filename = result.filePath;
+        if (filename === undefined) {
+            console.log('the user clicked the btn but didn\'t created a file');
+            return;
+        }
+        var filearr = filename.toLowerCase().split('.');
+        var ext = filearr.pop();
+        if (ext != 'mp4') {
+            filename = filename + '.mp4';
+        }
+        var finalfile = workdir + '/merged.mp4';
+        fs.copyFile(finalfile, filename, (err) => {
+            if (err) throw err;
+            console.log('source.txt was copied to destination.txt');
+        });
+        shell.openItem(path.dirname(filename));
+        spawn(appswitchpath, ['-a', 'Finder']);
+        $('#save').html('Saved');
+        //$('#save').css('pointer-events', 'none'); //.prop('disabled', true); //disable
+        //$('#save').hide();
+        //$('#postSaveMessage').show();
+    }).catch(err => {
+        console.log(err)
     })
 
 });
@@ -727,10 +784,10 @@ $('#helpmodalwrap').click(function() {
         }
     });
 });
-var selectedsmooth, selectedmaxshift, selectedMaxAngle;
+var selectedsmooth, selectedmaxshift, selectedMaxAngle, selectedshakiness, selectedaccuracy;
 
 function showoptions() {
-	  $('#result').hide();
+    $('#result').hide();
     $("button").hide();
     $("#selecttrim").hide();
     $("#openmodalwrap").hide();
@@ -738,6 +795,8 @@ function showoptions() {
     $('#fullvid').show();
     $('#message').hide();
     $('#options').show();
+    $('#helpmodal').html('<ul><li>Please wait while vidSmooth performs actual magic</li><li>If your endpoint was a specific file size, this might take a while</li></ul>');
+
     selectedsmooth = store.get('selectedsmooth') || 200;
     var pipFormatssmooth = {
         '0': '0',
@@ -850,9 +909,54 @@ function showoptions() {
         store.set('selectedMaxAngle', selectedMaxAngle);
     });
 
+    //********//
+    selectedshakiness = store.get('selectedshakiness') || 5;
+    var selectshakiness = document.getElementById("shakiness");
+    noUiSlider.create(selectshakiness, {
+        step: 1,
+        //limit:window.timeend,
+        tooltips: false, // [true, wNumb({ suffix: 's'}), true],
+        start: selectedshakiness,
+        connect: true,
+        range: {
+            'min': 1,
+            'max': 10
+        },
+        pips: {
+            mode: 'values',
+            values: [2, 4, 6, 8, 10],
+            density: 10
+        }
+    });
+    selectshakiness.noUiSlider.on("slide", function(values, handle) {
+        selectedshakiness = parseInt(values[handle]);
+        store.set('selectedshakiness', selectedshakiness);
+    });
+
+    selectedaccuracy = store.get('selectedaccuracy') || 15;
+    var selectaccuracy = document.getElementById("accuracy");
+    noUiSlider.create(selectaccuracy, {
+        step: 1,
+        //limit:window.timeend,
+        tooltips: false, // [true, wNumb({ suffix: 's'}), true],
+        start: selectedaccuracy,
+        connect: true,
+        range: {
+            'min': 1,
+            'max': 15
+        },
+        pips: {
+            mode: 'values',
+            values: [1, 5, 10, 15],
+            density: 7
+        }
+    });
+    selectaccuracy.noUiSlider.on("slide", function(values, handle) {
+        selectedaccuracy = parseInt(values[handle]);
+        store.set('selectedaccuracy', selectedaccuracy);
+    });
     $('#sample').show();
     $('#fullvid').show();
-
 }
 
 $('#sample').click(function() {
