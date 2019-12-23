@@ -45,10 +45,6 @@ margin-right:5%;
   margin: auto;
 }
 
-div {
-  font: 1em BlinkMacSystemFont;
-}
-
 #sidebar {
   padding-top: 28px;
   width: 250px;
@@ -651,6 +647,9 @@ body {
   width: 200px;
   margin: auto;
 }
+#ffmpegsource{
+  cursor:pointer;
+}
 
 body {
   background-color: white;
@@ -923,7 +922,7 @@ img#finalgiffile {
   border: solid 2px white;
   border-radius: 5px;
   padding-right: 15px;
-  width: 600px;
+  width: 650px;
 }
 
 #helpmodalwrap {

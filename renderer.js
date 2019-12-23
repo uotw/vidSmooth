@@ -18,16 +18,32 @@ const {
     shell
 } = require('electron');
 var appRootDir = require('app-root-dir').get();
-var ffmpegpath = appRootDir + '/node_modules/ffmpeg/ffmpeg';
-var ffprobepath = appRootDir + '/node_modules/ffmpeg/ffprobe';
-var appswitchpath = appRootDir + '/node_modules/imagemagick/appswitch';
-var curlpath = appRootDir + '/node_modules/curl/curl';
-var magickpath = appRootDir + '/node_modules/imagemagick/magick';
-var posterpath = appRootDir + '/poster.sh';
-var getoffsetpath = appRootDir + '/getoffset.sh';
-var mainpath = appRootDir + '/main.sh';
-var mmodepath = appRootDir + '/mmodeify.sh';
-var concatpath = appRootDir + '/concat.sh';
+var ffmpegsrc = appRootDir+'/ffmpeg/';
+// var ffmpegpath = appRootDir + '/node_modules/ffmpeg/ffmpeg';
+// var ffprobepath = appRootDir + '/node_modules/ffmpeg/ffprobe';
+// var appswitchpath = appRootDir + '/node_modules/imagemagick/appswitch';
+
+var os = require("os");
+if (os.platform() == "darwin") {
+    var ismac = 1;
+} else {
+    var ismac = 0;
+}
+
+if (ismac) {
+    var ffmpegpath = appRootDir + '/node_modules/ffmpeg/ffmpeg';
+    var ffprobepath = appRootDir + '/node_modules/ffmpeg/ffprobe';
+    var appswitchpath = appRootDir + '/node_modules/ffmpeg/appswitch';
+} else {
+    var winoriginal;
+    var ffmpegpath= appRootDir + '\\node_modules\\ffmpeg\\ffmpeg.exe';
+    var ffprobepath = appRootDir + '\\node_modules\\ffmpeg\\ffprobe.exe';
+    var sendkeysbatpath = appRootDir + '\\sendKeys.bat';
+    var temporiginal = workdir + '\\temp.mp4';
+
+}
+
+
 var filelist = [];
 var widtharr = [];
 var heightarr = [];
@@ -58,7 +74,8 @@ var helppending = false;
 window.croppixelperc = 0.09;
 const spawn = require('child_process').spawn;
 const spawnsync = require('child_process').spawnSync;
-var palettefile = workdir + '/pallete.png';
+//const spawnsync = require('child_process').spawnSync;
+
 
 function maketemp() {
     var text = "";
@@ -142,8 +159,13 @@ $("#filelistwrap").on('drop', function(event) {
     event.preventDefault();
     filelist = [];
     var files = event.originalEvent.dataTransfer.files;
-    spawn(appswitchpath, ['-p', pid]);
-    //spawn(appswitch -a "ClipDeidentifier"
+    if (ismac) {
+        spawn(appswitchpath, ['-p', pid]);
+    } else {
+        spawn('cmd.exe', ['/c', 'call', '"'+sendkeysbatpath+'"', '"vidSmooth"', '""'], {
+            windowsVerbatimArguments: true
+        });
+    }
     for (var i = 0; i < files.length; i++) {
         var name = files[i].name;
         var pathn = files[i].path;
@@ -189,8 +211,13 @@ $("#openmodalwrap").on('drop', function(event) {
     event.preventDefault();
     filelist = [];
     var files = event.originalEvent.dataTransfer.files;
-    spawn(appswitchpath, ['-p', pid]);
-    //spawn(appswitch -a "ClipDeidentifier"
+    if (ismac) {
+        spawn(appswitchpath, ['-p', pid]);
+    } else {
+        spawn('cmd.exe', ['/c', 'call', '"'+sendkeysbatpath+'"', '"vidSmooth"', '""'], {
+            windowsVerbatimArguments: true
+        });
+    }
     for (var i = 0; i < files.length; i++) {
         var name = files[i].name;
         var pathn = files[i].path;
@@ -370,7 +397,11 @@ function progress(i) {
 function setupselect() {
     return () => new Promise((resolve, reject) => {
         var infile = filelist[0];
-        var ffprobe = spawnsync(ffprobepath, ['-select_streams', 'v:0', '-print_format', 'json', '-show_streams', '-i', infile]);
+        if( ismac ){
+            var ffprobe = spawnsync(ffprobepath, ['-select_streams', 'v:0', '-print_format', 'json', '-show_streams', '-i', infile]);
+        } else {
+            var ffprobe = spawnsync('cmd.exe', ['/c', '"'+ffprobepath+'"', '-select_streams', 'v:0', '-print_format', 'json', '-show_streams', '-i', infile], { windowsVerbatimArguments: true });
+        }
         var ffprobeOb = JSON.parse(ffprobe.stdout);
         //console.log(ffprobeOb.streams[0]);
         window.width = ffprobeOb.streams[0].width;
@@ -424,7 +455,8 @@ function createsample() {
     var crop = $('#crop').val();
     var trf = workdir + '/transforms.trf';
     var deshake = ',vidstabtransform=' + 'optalgo=' + camera + ':crop=' + crop + ':smoothing=' + selectedsmooth + ':input=' + trf + ':relative=1:maxshift=' + selectedmaxshift + ':maxangle=' + selectedMaxAngle + ',unsharp=5:5:0.8:3:3:0.4';
-    var vftext = 'scale=iw*min(1\\,min(600/iw\\,480/ih)):-1,setsar=1,scale=trunc(in_w/2)*2:trunc(in_h/2)*2';
+    //var vftext = 'scale=iw*min(1\\,min(600/iw\\,480/ih)):-1,setsar=1,scale=trunc(in_w/2)*2:trunc(in_h/2)*2';
+    var vftext = 'setsar=1,scale=trunc(in_w/2)*2:trunc(in_h/2)*2';
     var transformvf = vftext + ',vidstabdetect=' + 'result=' + trf + ':shakiness=' + selectedshakiness + ':accuracy=' + selectedaccuracy; //+' -f null - ';
     var samplefile = workdir + '/sample.mp4';
     var mergedfile = workdir + '/merged.mp4';
@@ -434,13 +466,22 @@ function createsample() {
     } else {
         var stack = "hstack";
     }
-    myqueue.push(progress(0));
-    myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-']));
-    myqueue.push(progress(0.33));
-    myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', vftext + deshake, samplefile]));
-    myqueue.push(progress(0.66));
-    myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', vftext, clippedOriginal]));
-    myqueue.push(customSpawn(ffmpegpath, ['-i', clippedOriginal, '-i', samplefile, '-y', '-filter_complex', stack, mergedfile]));
+    if( ismac ) {
+        myqueue.push(progress(0));
+        myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-']));
+        myqueue.push(progress(0.33));
+        myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', vftext + deshake, samplefile]));
+        myqueue.push(progress(0.66));
+        myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', vftext, clippedOriginal]));
+        myqueue.push(customSpawn(ffmpegpath, ['-i', clippedOriginal, '-i', samplefile, '-y', '-filter_complex', stack, mergedfile]));
+    } else {
+        myqueue.push(progress(0));
+        myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-'], { windowsVerbatimArguments: true }));
+        myqueue.push(progress(0.33));
+        myqueue.push(progress(0.66));
+        myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', vftext, clippedOriginal], { windowsVerbatimArguments: true }));
+        myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-i', clippedOriginal, '-i', samplefile, '-y', '-filter_complex', stack, mergedfile], { windowsVerbatimArguments: true }));
+    }
     myqueue.push(progress(1));
     myqueue.push(sampledump(1));
     queue(myqueue).then(([cmd, args]) => {
@@ -511,7 +552,11 @@ function preview() {
     myqueue.push(setupselect());
     if (!fs.existsSync(outfile)) {
         if (canplay != "") {
-            myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-an', '-y', '-vf', vftext, outfile]));
+            if ( ismac ){
+                myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-an', '-y', '-vf', vftext, outfile]));
+            } else {
+                myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-i', filelist[0], '-an', '-y', '-vf', vftext, outfile], { windowsVerbatimArguments: true }));
+            }
             myqueue.push(previewdump(1, outfile));
         } else {
             myqueue.push(previewdump(1, filelist[0]));
@@ -630,8 +675,13 @@ $('#fullvid').click(function() {
     var deshake = 'vidstabtransform=' + 'optalgo=' + camera + ':crop=' + crop + ':smoothing=' + selectedsmooth + ':input=' + trf + ':relative=1:maxshift=' + selectedmaxshift + ':maxangle=' + selectedMaxAngle + ',unsharp=5:5:0.8:3:3:0.4';
     var transformvf = 'vidstabdetect=' + 'result=' + trf + ':shakiness=' + selectedshakiness + ':accuracy=' + selectedaccuracy;
     var finalFile = workdir + '/final.mp4';
-    myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-']));
-    myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-y', '-vf', deshake, finalFile]));
+    if (ismac){
+        myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-']));
+        myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-y', '-crf','17','-vf', deshake, finalFile]));
+    } else {
+        myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-'], { windowsVerbatimArguments: true }));
+        myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-i', filelist[0], '-y', '-crf','17','-vf', deshake, finalFile], { windowsVerbatimArguments: true }));
+    }
     myqueue.push(progress(1));
     myqueue.push(showfinal(1));
     queue(myqueue).then(([cmd, args]) => {
@@ -713,7 +763,13 @@ $('#save').click(function() {
             console.log('source.txt was copied to destination.txt');
         });
         shell.openItem(path.dirname(filename));
-        spawn(appswitchpath, ['-a', 'Finder']);
+        if (ismac) {
+            spawn(appswitchpath, ['-a', 'Finder']);
+        } else {
+            spawn('cmd.exe', ['/c', 'call', '"'+sendkeysbatpath+'"', '"vidSmooth"', '""'], {
+                windowsVerbatimArguments: true
+            });
+        }
         $('#save').html('Saved');
         //$('#save').css('pointer-events', 'none'); //.prop('disabled', true); //disable
         //$('#save').hide();
@@ -746,7 +802,13 @@ $('#savesample').click(function() {
             console.log('source.txt was copied to destination.txt');
         });
         shell.openItem(path.dirname(filename));
-        spawn(appswitchpath, ['-a', 'Finder']);
+        if (ismac) {
+            spawn(appswitchpath, ['-a', 'Finder']);
+        } else {
+            spawn('cmd.exe', ['/c', 'call', '"'+sendkeysbatpath+'"', '"vidSmooth"', '""'], {
+                windowsVerbatimArguments: true
+            });
+        }
         $('#save').html('Saved');
         //$('#save').css('pointer-events', 'none'); //.prop('disabled', true); //disable
         //$('#save').hide();
@@ -795,8 +857,8 @@ function showoptions() {
     $('#fullvid').show();
     $('#message').hide();
     $('#options').show();
-    $('#helpmodal').html('<ul><li>Please wait while vidSmooth performs actual magic</li><li>If your endpoint was a specific file size, this might take a while</li></ul>');
-
+    //$('#helpmodal').html('<ul><li>Please wait while vidSmooth performs actual magic</li><li>If your endpoint was a specific file size, this might take a while</li></ul>');
+    $('#helpmodal').html('<p><ul><li>accuracy<br><ul><li>Set the accuracy of the detection process. It must be a value in the range 1-15. A value of 1 means low accuracy, a value of 15 means high accuracy. Default value is 15.</ul><li>shakiness<br><ul><li>Set the shakiness of input video or quickness of camera. It accepts an integer in the range 1-10, a value of 1 means little shakiness, a value of 10 means strong shakiness. Default value is 5.</ul><li>smoothing<br><ul><li>Set the number of frames (value*2 + 1), used for lowpass filtering the camera movements. Default value is 10.<br>For example, a number of 10 means that 21 frames are used (10 in the past and 10 in the future) to smoothen the motion in the video. A larger value leads to a smoother video, but limits the acceleration of the camera (pan/tilt movements). 0 is a special case where a static camera is simulated.</ul><li>maxshift<br><ul><li>Set maximal number of pixels to translate frames. </ul><li>maxangle<br><ul><li>Set maximal angle in radians (degree*PI/180) to rotate frames. </ul><li>crop method<br><ul><li>Specify how to deal with empty frame borders that may be shrinked-in due to movement compensation. Available values are:<br>keep: Keep image information from previous frame (default).<br>black: Fill the border-areas black.</ul><li>camera path<br><ul><li>Set the camera path optimization algorithm. Accepted values are:<br>gauss: Gaussian kernel low-pass filter on camera motion (default).<br>avg: Averaging on transformations.</ul><li>tripod<br><ul><li>Enables virtual tripod mode if set to "on", which is equivalent to smoothing=0. Default value is "off".</ul></ul>');
     selectedsmooth = store.get('selectedsmooth') || 200;
     var pipFormatssmooth = {
         '0': '0',
@@ -990,3 +1052,11 @@ $('select').each(function() {
         $(this).val(store.get(id));
     }
 });
+
+$('#ffmpegsource').click(function(){
+    var ffmpegsrc = appRootDir+'/ffmpeg';
+    shell.openItem(ffmpegsrc);
+});
+$('#gpl').click(function(){
+    var url="http://www.gnu.org/licenses/old-licenses/gpl-2.0.html";
+  });

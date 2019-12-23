@@ -16,12 +16,13 @@
     "url": "https://www.ultrasoundoftheweek.com/vidSmooth"
   },
   "homepage": "https://www.ultrasoundoftheweek.com/vidSmooth",
-  "devDependencies": {},
+  "devDependencies": {
+    "electron": "^7.1.7"
+  },
   "directories.bin": "node_modules/.bin/",
   "dependencies": {
     "app-root-dir": "^1.0.2",
     "dialogue": "0.0.0",
-    "electron": "^7.1.5",
     "electron-store": "^5.1.0",
     "electron-window-state": "^4.1.1",
     "jquery": "^3.4.1",
