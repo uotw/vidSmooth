@@ -1,8 +1,8 @@
 # vidSmooth
-This is an Electron frontend for ffmpeg's vidStab library that takes an input video and outputs a stabilized version in mp4/h264 format.
+This is an Electron frontend for ffmpeg's [vid.Stab](https://github.com/georgmartius/vid.stab) library that takes an input video and outputs a stabilized version in high quality mp4/h264 format.
 ## Features
-- Any codec supported by ffmpeg will be supported as an input video
-- Nearly all the settings vidStab takes an input are exposed to the user
+- Any codec supported by ffmpeg will be supported as an input video (mp4, m4v, avi, wmv, mov, flv, mpg, mpeg, gif)
+- Most settings vidStab uses as input are exposed to the user
      *   accuracy  
      *   shakiness  
      *   smoothing  
@@ -12,6 +12,11 @@ This is an Electron frontend for ffmpeg's vidStab library that takes an input vi
      *   camera path  
      *   tripod mode
 - The user has the option to select a portion of the input video and create a stabilized sample before committing to the entire video
+
+### Issues
+- Occasionally ffmpeg will choke on a video input type, but since there is no error control built into this app, it will just stop responding
+- When the smoothing settings are too agressive, vid.Stab will 1) over-crop a large portion of the video an/or 2) introduce edge artifacts in an attempt to interpolate video data
+- If tripod mode is set to on, but the input video pans away from a subject, the result is that the edge pixels get smeared across the video and no further useful video will be displayed 
 
 ### Development Environment Setup
 - you must first [install Node 12](https://nodejs.org/en/download/)
