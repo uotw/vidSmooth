@@ -6,10 +6,10 @@ This is an Electron frontend for ffmpeg's vidStab library that takes an input vi
 - The user has the option to select a portion of the input video and create a stabilized sample before committing to the entire video
 
 ### Development Environment Setup
-- you must first install Node 12
+- you must first [install Node 12](https://nodejs.org/en/download/)
 - `git clone https://github.com/uotw/vidSmooth.git`
 - `cd vidSmooth`
 - `npm install`
-- install ffmpeg, ffprobe static binaries for your OS per [these instructions](https://stackoverflow.com/questions/33152533/bundling-precompiled-binary-into-electron-app/38373289#38373289)
+- install ffmpeg, ffprobe static binaries for your OS per [these instructions](https://stackoverflow.com/questions/33152533/bundling-precompiled-binary-into-electron-app/38373289#38373289) [[MacOS](https://evermeet.cx/ffmpeg/)]
 - if on MacOS, install [appswitch](https://github.com/nriley/appswitch) binary per above instructions
 npm start
