@@ -832,7 +832,7 @@ function showoptions() {
     $('#restart,#fullvid,#options,#sample').show();
     //$('#helpmodal').html('<ul><li>Please wait while vidSmooth performs actual magic</li><li>If your endpoint was a specific file size, this might take a while</li></ul>');
     $('#helpmodal').html('<p><ul><li>accuracy<br><ul><li>Set the accuracy of the detection process. It must be a value in the range 1-15. A value of 1 means low accuracy, a value of 15 means high accuracy. Default value is 15.</ul><li>shakiness<br><ul><li>Set the shakiness of input video or quickness of camera. It accepts a integer in the range 1-10, a value of 1 means little shakiness, a value of 10 means strong shakiness. Default value is 5.</ul><li>smoothing<br><ul><li>Set the number of frames (value*2 + 1), used for lowpass filtering the camera movements. Default value is 10.<br>For example, a number of 10 means that 21 frames are used (10 in the past and 10 in the future) to smoothen the motion in the video. A larger value leads to a smoother video, but limits the acceleration of the camera (pan/tilt movements). 0 is a special case where a static camera is simulated.</ul><li>maxshift<br><ul><li>Set maximal number of pixels to translate frames. </ul><li>maxangle<br><ul><li>Set maximal angle in radians (degree*PI/180) to rotate frames. </ul><li>crop method<br><ul><li>Specify how to deal with empty frame borders that may be shrinked-in due to movement compensation. Available values are:<br>keep: Keep image information from previous frame (default).<br>black: Fill the border-areas black.</ul><li>camera path<br><ul><li>Set the camera path optimization algorithm. Accepted values are:<br>gauss: Gaussian kernel low-pass filter on camera motion (default).<br>avg: Averaging on transformations.</ul><li>tripod<br><ul><li>Enables virtual tripod mode if set to "on", which is equivalent to smoothing=0. Default value is "off".</ul></ul>');
-    selectedsmooth = store.get('selectedsmooth') || 200;
+    selectedsmooth = store.get('selectedsmooth') || 50;
     var pipFormatssmooth = {
         '0': '0',
         '25': '25',
@@ -868,13 +868,13 @@ function showoptions() {
         selectedsmooth = parseInt(values[handle]);
         store.set('selectedsmooth', selectedsmooth);
     });
-    selectedmaxshift = store.get('selectedmaxshift') || 200;
+    selectedmaxshift = store.get('selectedmaxshift') || 150;
     var pipFormatsmaxshift = {
         '0': '0',
         '50': '50',
         '100': '100',
         '150': '150',
-        '200': 'max'
+        '200': '200'
     };
     //window.tpf=2000/34329;
     var selectmaxshift = document.getElementById("maxshift");
@@ -913,7 +913,7 @@ function showoptions() {
         '90': '90',
         '180': '180',
         '270': '270',
-        '360': 'max'
+        '360': '360'
     };
     noUiSlider.create(selectMaxAngle, {
         step: 1,
@@ -968,7 +968,7 @@ function showoptions() {
         store.set('selectedshakiness', selectedshakiness);
     });
 
-    selectedaccuracy = store.get('selectedaccuracy') || 15;
+    selectedaccuracy = store.get('selectedaccuracy') || 13;
     var selectaccuracy = document.getElementById("accuracy");
     noUiSlider.create(selectaccuracy, {
         step: 1,
