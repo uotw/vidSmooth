@@ -398,10 +398,8 @@ function roundNumber(num, scale) {
 
 function progress(i) {
     return () => new Promise((resolve, reject) => {
-        //stop = 100 * i;
         var elem = document.getElementById("myBar");
         elem.style.width = 100 * i + '%';
-        console.log('perc: ' + (100 * i));
         resolve(i);
     });
 }
@@ -478,7 +476,7 @@ function createsample() {
     } else {
         var infile = winoriginal;
     }
-    myqueue.push(progress(0));
+
     myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', infile, '-y', '-vf', transformvf, '-f', 'null', '-']));
     myqueue.push(progress(0.33));
     myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', infile, '-y', '-vf', vftext + deshake, samplefile]));
@@ -486,7 +484,9 @@ function createsample() {
     myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', infile, '-y', '-vf', vftext, clippedOriginal]));
     myqueue.push(customSpawn(ffmpegpath, ['-i', clippedOriginal, '-i', samplefile, '-y', '-filter_complex', stack, mergedfile]));
     myqueue.push(progress(1));
+    myqueue.push(wait(400));
     myqueue.push(sampledump(1));
+    myqueue.push(progress(0));
     queue(myqueue).then(([cmd, args]) => {
         console.log(cmd + ' finished - all finished');
     }).catch(TypeError, function(e) {}).catch(err => console.log(err));
@@ -503,7 +503,7 @@ function sampledump() {
         }
         var seconds = new Date().getTime() / 1000;
         var videoheight = parseInt(2 * window.height * 600 / window.width) + 'px';
-        var cliphtml = '<video class=sample loop height=' + videoheight + ' width="600px" autoplay loop controls><source src="' + workdir + '/merged.mp4?v' + seconds + '" type=video/mp4></video>';
+        var cliphtml = '<video class=sample loop height=' + videoheight + ' width="600px" autoplay loop muted controls><source src="' + workdir + '/merged.mp4?v' + seconds + '" type=video/mp4></video>';
         $('#myProgress,#cancel').hide();
         $('#message').hide();
         $('video').remove();
@@ -525,6 +525,14 @@ function sampledump() {
         });
         setupclip();
         resolve(i);
+    });
+}
+
+function preptemp() {
+    return () => new Promise((resolve, reject) => {
+        $('#message').html('preparing your preview');
+        $('#message').show();
+        resolve(1);
     });
 }
 
@@ -552,13 +560,18 @@ function preview() {
     myqueue.push(setupselect());
     if (!fs.existsSync(outfile)) {
         if (canplay == "") {
+
             if(ismac){
                 var infile = filelist[0];
             } else {
                 var infile = winoriginal;
             }
+            myqueue.push(preptemp());
             myqueue.push(customSpawn(ffmpegpath, ['-i', infile, '-an', '-y', '-vf', vftext, outfile]));
+            myqueue.push(progress(1));
+            myqueue.push(wait(400));
             myqueue.push(previewdump(1, outfile));
+            myqueue.push(progress(0));
         } else {
             myqueue.push(previewdump(1, filelist[0]));
         }
@@ -571,6 +584,12 @@ function preview() {
     }).catch(TypeError, function(e) {}).catch(err => console.log(err));
 }
 
+function wait(ms){
+    return () => new Promise((resolve, reject) => {
+        setTimeout(function(){ resolve(1); }, ms);
+
+    });
+}
 
 function previewdump(i, file) {
     return () => new Promise((resolve, reject) => {
@@ -582,7 +601,7 @@ function previewdump(i, file) {
         }
         var seconds = new Date().getTime() / 1000;
         var videoheight = parseInt(window.height * 600 / window.width) + 'px';
-        var cliphtml = '<video class=added id=clip loop height=' + videoheight + ' width="600px"><source src="' + file + '?v' + seconds + '" type=video/mp4></video>';
+        var cliphtml = '<video class=added id=clip loop muted height=' + videoheight + ' width="600px"><source src="' + file + '?v' + seconds + '" type=video/mp4></video>';
         //$('#loading-container').hide();
         $('#myProgress').hide();
         $('video').remove();
@@ -718,7 +737,7 @@ function showfinal(i) {
         $("#message").html('Done!'); // Drag your gif to an app, location, or tweet');
         //$('#finalsize').html(size + 'MB/' + calcgifwidth + 'x' + calcgifheight + '/' + precisionRound(giflength, 2) + 's');
         var seconds = new Date().getTime() / 1000;
-        var cliphtml = '<video class=sample id=final oop height=auto width="100%" autoplay loop controls><source src="' + workdir + '/final.mp4?v' + seconds + '" type=video/mp4></video>';
+        var cliphtml = '<video class=sample id=final oop height=auto width="100%" autoplay loop muted controls><source src="' + workdir + '/final.mp4?v' + seconds + '" type=video/mp4></video>';
 
         $('#result').append(cliphtml).css('display', 'block');
         document.getElementById('final').ondragstart = (event) => {
@@ -743,8 +762,8 @@ $('#save').click(function() {
         defaultPath: '~/Desktop/' + fileonly + '_smoothed.mp4'
     }).then(result => {
         filename = result.filePath;
-        if (filename === undefined) {
-            console.log('the user clicked the btn but didn\'t created a file');
+        if (filename == "") {
+            console.log('cancel save');
             return;
         }
         var filearr = filename.toLowerCase().split('.');
@@ -755,10 +774,8 @@ $('#save').click(function() {
         var finalfile = workdir + '/final.mp4';
         fs.copyFile(finalfile, filename, (err) => {
             if (err) throw err;
-            console.log('source.txt was copied to destination.txt');
             shell.openItem(path.dirname(filename));
             focusFinder();
-            $('#save').html('Saved');
         });
 
     }).catch(err => {
@@ -770,12 +787,12 @@ $('#save').click(function() {
 $('#savesample').click(function() {
     fileonly = path.basename(filelist[0], path.extname(filelist[0]));
     filename = dialog.showSaveDialog({
-        title: 'Save your file',
+        title: 'Save your sample',
         defaultPath: '~/Desktop/' + fileonly + '_sample_smoothed.mp4'
     }).then(result => {
         filename = result.filePath;
-        if (filename === undefined) {
-            console.log('the user clicked the btn but didn\'t created a file');
+        if (filename == "") {
+            console.log('cancel save');
             return;
         }
         var filearr = filename.toLowerCase().split('.');
@@ -788,7 +805,6 @@ $('#savesample').click(function() {
             if (err) throw err;
             shell.openItem(path.dirname(filename));
             focusFinder();
-            $('#save').html('Saved');
         });
 
     }).catch(err => {
