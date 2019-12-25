@@ -5,10 +5,10 @@ This is an Electron frontend for ffmpeg's vidStab library that takes an input vi
 - Nearly all the settings vidStab takes an input are exposed to the user
 - The user has the option to select a portion of the input video and create a stabilized sample before committing to the entire video
 
-## Development Environment
-# dependencies
-- Node 12
-# Install dependencies
-npm install
-# Run the app
+### Development Environment Setup
+- you must first install Node 12
+- download and unzip this repository
+- run `npm install`
+- install ffmpeg, ffprobe static binaries for your OS per [these instructions](https://stackoverflow.com/questions/33152533/bundling-precompiled-binary-into-electron-app/38373289#38373289)
+- if on MacOS, install [appswitch](https://github.com/nriley/appswitch) binary per above instructions
 npm start
