@@ -3,7 +3,7 @@ This is an Electron frontend for ffmpeg's vidStab library that takes an input vi
 ## Features
 - Any codec supported by ffmpeg will be supported as an input video
 - Nearly all the settings vidStab takes an input are exposed to the user
- *   accuracy  
+--   accuracy  
  *   shakiness  
  *   smoothing  
  *   maxshift  
