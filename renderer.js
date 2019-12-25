@@ -4,7 +4,6 @@ const {
 } = require('electron');
 var remote = require('electron').remote;
 var pid = remote.process.pid;
-//console.log(remote.process.pid);
 var dialog = remote.dialog;
 var $ = require('jQuery');
 var path = require('path');
@@ -18,29 +17,28 @@ const {
     shell
 } = require('electron');
 var appRootDir = require('app-root-dir').get();
-var ffmpegsrc = appRootDir+'/ffmpeg/';
-// var ffmpegpath = appRootDir + '/node_modules/ffmpeg/ffmpeg';
-// var ffprobepath = appRootDir + '/node_modules/ffmpeg/ffprobe';
-// var appswitchpath = appRootDir + '/node_modules/imagemagick/appswitch';
-
+var ffmpegsrc = appRootDir + '/ffmpeg/';
 var os = require("os");
 if (os.platform() == "darwin") {
     var ismac = 1;
 } else {
     var ismac = 0;
 }
-
 if (ismac) {
     var ffmpegpath = appRootDir + '/node_modules/ffmpeg/ffmpeg';
     var ffprobepath = appRootDir + '/node_modules/ffmpeg/ffprobe';
     var appswitchpath = appRootDir + '/node_modules/ffmpeg/appswitch';
+    var workdir = ostemp + '/' + maketemp();
+    var trf = workdir + '/transforms.trf';
 } else {
     var winoriginal;
-    var ffmpegpath= appRootDir + '\\node_modules\\ffmpeg\\ffmpeg.exe';
-    var ffprobepath = appRootDir + '\\node_modules\\ffmpeg\\ffprobe.exe';
+    var ffmpegpath = appRootDir + '\\node_modules\\ffmpeg\\ffmpeg.exe';
+    var ffprobepath = appRootDir + '\\node_modules\\ffprobe\\ffprobe.exe';
     var sendkeysbatpath = appRootDir + '\\sendKeys.bat';
     var temporiginal = workdir + '\\temp.mp4';
-
+    var workdir = ostemp + '\\' + maketemp();
+    var unixify = require('unixify');
+    var trf = unixify(workdir + '\\transforms.trf');
 }
 
 
@@ -49,7 +47,6 @@ var widtharr = [];
 var heightarr = [];
 var croppixelarr = [];
 var aspect;
-var workdir = ostemp + '/' + maketemp();
 remote.getGlobal('workdirObj').prop1 = workdir;
 console.log('tempdir: ' + remote.getGlobal('workdirObj').prop1);
 var giffile;
@@ -76,7 +73,6 @@ const spawn = require('child_process').spawn;
 const spawnsync = require('child_process').spawnSync;
 //const spawnsync = require('child_process').spawnSync;
 
-
 function maketemp() {
     var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -98,7 +94,7 @@ function run_cmd(cmd, args, callBack) {
 var isdicom = 0;
 
 function isclip(filename, filewithpath) {
-    var clipext = ['mp4', 'm4v', 'avi', 'wmv', 'mov', 'flv', 'mpg', 'mpeg', 'gif'];
+    var clipext = ['mp4', 'm4v', 'avi', 'wmv', 'mov', 'flv', 'mpg', 'mpeg','gif'];
     for (var i = 0; i < clipext.length; i++) {
         if (filename.toLowerCase().split('.').pop().indexOf(clipext[i]) >= 0) {
             return (1);
@@ -107,7 +103,6 @@ function isclip(filename, filewithpath) {
     var filetype = spawnsync('file', ['-Ib', filewithpath, ]); // '| grep -i dicom']);
     var filetyperesult = filetype.stdout.toString().toLowerCase();
     var dicomsearch = filetyperesult.indexOf('dicom');
-    //console.log(filetyperesult, isdicom);
     if (dicomsearch > -1) {
         isdicom = 1;
         return (1);
@@ -155,17 +150,29 @@ $("#filelistwrap").on('dragover', function(event) {
     event.stopPropagation();
     event.preventDefault();
 });
+function focusThisApp(){
+    if (ismac) {
+        spawn(appswitchpath, ['-p', pid]);
+    } else {
+        spawn('cmd.exe', ['/c', 'call', '"' + sendkeysbatpath + '"', '"vidSmooth"', '""'], {
+            windowsVerbatimArguments: true
+        });
+    }
+}
+function focusFinder(){
+     if (ismac) {
+            spawn(appswitchpath, ['-a', 'Finder']);
+        } else {
+            spawn('cmd.exe', ['/c', 'call', '"' + sendkeysbatpath + '"', '"vidSmooth"', '""'], {
+                windowsVerbatimArguments: true
+            });
+    }
+}
 $("#filelistwrap").on('drop', function(event) {
     event.preventDefault();
     filelist = [];
     var files = event.originalEvent.dataTransfer.files;
-    if (ismac) {
-        spawn(appswitchpath, ['-p', pid]);
-    } else {
-        spawn('cmd.exe', ['/c', 'call', '"'+sendkeysbatpath+'"', '"vidSmooth"', '""'], {
-            windowsVerbatimArguments: true
-        });
-    }
+    focusThisApp();
     for (var i = 0; i < files.length; i++) {
         var name = files[i].name;
         var pathn = files[i].path;
@@ -211,13 +218,7 @@ $("#openmodalwrap").on('drop', function(event) {
     event.preventDefault();
     filelist = [];
     var files = event.originalEvent.dataTransfer.files;
-    if (ismac) {
-        spawn(appswitchpath, ['-p', pid]);
-    } else {
-        spawn('cmd.exe', ['/c', 'call', '"'+sendkeysbatpath+'"', '"vidSmooth"', '""'], {
-            windowsVerbatimArguments: true
-        });
-    }
+    focusThisApp();
     for (var i = 0; i < files.length; i++) {
         var name = files[i].name;
         var pathn = files[i].path;
@@ -290,10 +291,21 @@ var child;
 
 function customSpawn(command, args) {
     return () => new Promise((resolve, reject) => {
-        child = spawn(command, args, {
-            windowsVerbatimArguments: true
-        });
         console.log(command + args.join(' '));
+        if( !ismac ){
+            var newargs=args.slice(0);
+            newargs.unshift('"' + command + '"');
+            newargs.unshift('/c');
+            console.log(newargs);
+            child = spawn('cmd.exe', newargs, {
+                windowsVerbatimArguments: true
+            });
+        } else {
+            child = spawn(command, args, {
+                windowsVerbatimArguments: true
+            });
+        }
+
         var length = null;
         var currenttime = 0;
         var regex = /Duration:(.*), start:/;
@@ -302,7 +314,7 @@ function customSpawn(command, args) {
             //console.log(command + args + `stderr: ${data}`);
             var buff = new Buffer(data);
             var str = buff.toString('utf8')
-            console.log(str);
+            //console.log(str);
 
             if (fullviding || previewing) {
                 var Duration_matches = str.match(regex);
@@ -359,7 +371,7 @@ function customSpawn(command, args) {
             }
         });
         child.stdout.on('data', (data) => {
-            //console.log(`stdout: ${data}`);
+            console.log(`stdout: ${data}`);
         });
         child.on('close', code => {
             if (code === 0) {
@@ -396,30 +408,28 @@ function progress(i) {
 
 function setupselect() {
     return () => new Promise((resolve, reject) => {
-        var infile = filelist[0];
-        if( ismac ){
-            var ffprobe = spawnsync(ffprobepath, ['-select_streams', 'v:0', '-print_format', 'json', '-show_streams', '-i', infile]);
+       if (ismac) {
+            var ffprobe = spawnsync(ffprobepath, ['-select_streams', 'v:0', '-print_format', 'json', '-show_streams', '-i',  filelist[0]]);
         } else {
-            var ffprobe = spawnsync('cmd.exe', ['/c', '"'+ffprobepath+'"', '-select_streams', 'v:0', '-print_format', 'json', '-show_streams', '-i', infile], { windowsVerbatimArguments: true });
+            var ffprobe = spawnsync('cmd.exe', ['/c', '"' + ffprobepath + '"', '-select_streams', 'v:0', '-print_format', 'json', '-show_streams', '-i', winoriginal], {
+                windowsVerbatimArguments: true,
+                cwd: process.cwd(),
+                env: process.env,
+                stdio: 'pipe',
+                encoding: 'utf-8'
+            });
         }
         var ffprobeOb = JSON.parse(ffprobe.stdout);
-        //console.log(ffprobeOb.streams[0]);
         window.width = ffprobeOb.streams[0].width;
         window.height = ffprobeOb.streams[0].height;
         aspect = window.width / window.height;
-        if(ffprobeOb.streams[0].tags.rotate==90 || ffprobeOb.streams[0].tags.rotate==270 ){
-            aspect = 1/aspect;
+        if(ffprobeOb.streams[0].tags){
+            if (ffprobeOb.streams[0].tags.rotate == 90 || ffprobeOb.streams[0].tags.rotate == 270) {
+                aspect = 1 / aspect;
+            }
         }
-        //console.log(aspect);
         window.duration = Number(ffprobeOb.streams[0].duration);
         window.fps = precisionRound(eval(ffprobeOb.streams[0].r_frame_rate), 4);
-        // if (!window.duration) {
-        //     var tempfile = workdir + '/temp.mp4';
-        //     var dur = spawnsync(ffprobepath, ['-print_format', 'json', '-show_streams', '-i', tempfile]);
-        //     var durOB = JSON.parse(dur.stdout);
-        //     console.log(durOB.streams[0].duration);
-        //     window.duration = Number(durOB.streams[0].duration);
-        // }
         window.codec = ffprobeOb.streams[0].codec_name;
         window.tpf = 1 / eval(window.fps);
         var canvasheight = parseInt(window.height * 600 / window.width);
@@ -431,15 +441,14 @@ function setupselect() {
 
 function createsample() {
     $('#message').html('creating your sample');
+
     fullviding = previewing = false;
     sampling = true;
-    $('#helpmodal').html('<ul><li>be patient while I prepare your sample</li><li>If your clip is long or computer slow, get a coffee</li></ul>');
+    $('#helpmodal').html('<ul><li>be patient while I prepare your sample</li><li>If your clip is long or computer is slow, get a coffee</li></ul>');
     fileonly = path.basename(filelist[0], path.extname(filelist[0]));
     $('#myProgress').show();
     $('button').hide();
-    if (!fs.existsSync(workdir)) {
-        fs.mkdirSync(workdir);
-    }
+    $('#cancel').show();
     var myqueue = [];
     if (selectedMaxAngle == 360) {
         selectedMaxAngle = -1;
@@ -453,35 +462,29 @@ function createsample() {
     var transformvf = ' vidstabdetect -f null - ';
     var camera = $('#camera').val();
     var crop = $('#crop').val();
-    var trf = workdir + '/transforms.trf';
     var deshake = ',vidstabtransform=' + 'optalgo=' + camera + ':crop=' + crop + ':smoothing=' + selectedsmooth + ':input=' + trf + ':relative=1:maxshift=' + selectedmaxshift + ':maxangle=' + selectedMaxAngle + ',unsharp=5:5:0.8:3:3:0.4';
-    //var vftext = 'scale=iw*min(1\\,min(600/iw\\,480/ih)):-1,setsar=1,scale=trunc(in_w/2)*2:trunc(in_h/2)*2';
     var vftext = 'setsar=1,scale=trunc(in_w/2)*2:trunc(in_h/2)*2';
-    var transformvf = vftext + ',vidstabdetect=' + 'result=' + trf + ':shakiness=' + selectedshakiness + ':accuracy=' + selectedaccuracy; //+' -f null - ';
+    var transformvf = vftext + ',vidstabdetect=' + 'result=' + trf + ':shakiness=' + selectedshakiness + ':accuracy=' + selectedaccuracy;
     var samplefile = workdir + '/sample.mp4';
     var mergedfile = workdir + '/merged.mp4';
     var clippedOriginal = workdir + '/clipped.mp4';
-    if (aspect > 1){
+    if (aspect > 1) {
         var stack = "vstack";
     } else {
         var stack = "hstack";
     }
-    if( ismac ) {
-        myqueue.push(progress(0));
-        myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-']));
-        myqueue.push(progress(0.33));
-        myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', vftext + deshake, samplefile]));
-        myqueue.push(progress(0.66));
-        myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', vftext, clippedOriginal]));
-        myqueue.push(customSpawn(ffmpegpath, ['-i', clippedOriginal, '-i', samplefile, '-y', '-filter_complex', stack, mergedfile]));
+    if(ismac){
+        var infile = filelist[0];
     } else {
-        myqueue.push(progress(0));
-        myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-'], { windowsVerbatimArguments: true }));
-        myqueue.push(progress(0.33));
-        myqueue.push(progress(0.66));
-        myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-ss', window.timestart, '-t', samplelength, '-i', filelist[0], '-y', '-vf', vftext, clippedOriginal], { windowsVerbatimArguments: true }));
-        myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-i', clippedOriginal, '-i', samplefile, '-y', '-filter_complex', stack, mergedfile], { windowsVerbatimArguments: true }));
+        var infile = winoriginal;
     }
+    myqueue.push(progress(0));
+    myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', infile, '-y', '-vf', transformvf, '-f', 'null', '-']));
+    myqueue.push(progress(0.33));
+    myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', infile, '-y', '-vf', vftext + deshake, samplefile]));
+    myqueue.push(progress(0.66));
+    myqueue.push(customSpawn(ffmpegpath, ['-ss', window.timestart, '-t', samplelength, '-i', infile, '-y', '-vf', vftext, clippedOriginal]));
+    myqueue.push(customSpawn(ffmpegpath, ['-i', clippedOriginal, '-i', samplefile, '-y', '-filter_complex', stack, mergedfile]));
     myqueue.push(progress(1));
     myqueue.push(sampledump(1));
     queue(myqueue).then(([cmd, args]) => {
@@ -489,13 +492,10 @@ function createsample() {
     }).catch(TypeError, function(e) {}).catch(err => console.log(err));
 }
 
-function setupsample() {
-
-}
 
 function sampledump() {
     return () => new Promise((resolve, reject) => {
-        newhelp = '<ul><li>Drag the start and stop sliders to trim your clip</li><li>Click the <span class=bordered>PREVIEW</span> button to see what your gif will look like when it plays</li><li>You can also use the <span class=bordered>SPACEBAR</span> to start and pause your clip</li><li>Pay special attention to the loop point for a seemless gif</li><li>You can also use your keyboard ARROW KEYS <ul id=arrowkeys><li>&#8593;</li><li>&#8592;</li><li>&#8595;</li><li>&#8594;</li></ul> to fine tune your selection</li><li>As of early 2018, Twitter limits gif duration to 30 seconds</li></ul>';
+        newhelp = '<ul><li>Check to see if you like the amount of smoothing</li><li>Pay special attention to artifacts on the edges of the video</li><li>If you don\'t like the smoothing, click Change Settings.</li><li>You can save this comparison sample by clicking Save Sample </li></ul>';
         if (!helpviewing) {
             $('#helpmodal').html(newhelp);
         } else {
@@ -504,7 +504,7 @@ function sampledump() {
         var seconds = new Date().getTime() / 1000;
         var videoheight = parseInt(2 * window.height * 600 / window.width) + 'px';
         var cliphtml = '<video class=sample loop height=' + videoheight + ' width="600px" autoplay loop controls><source src="' + workdir + '/merged.mp4?v' + seconds + '" type=video/mp4></video>';
-        $('#myProgress').hide();
+        $('#myProgress,#cancel').hide();
         $('#message').hide();
         $('video').remove();
         $('.slidecontainer').hide();
@@ -531,8 +531,8 @@ function sampledump() {
 var fileonly, previewing, fullviding, sampling;
 
 function preview() {
-
-    var ext = path.extname(filelist[0]);
+    //console.log('preview');
+    var ext = path.extname(filelist[0]).replace('.','');
     const video = document.createElement('video');
     var canplay = video.canPlayType('video/' + ext);
     fullviding = sampling = false;
@@ -540,7 +540,7 @@ function preview() {
     var outfile = workdir + '/temp.mp4'
     $('#helpmodal').html('<ul><li>be patient while I prepare your preview</li><li>If your clip is long or computer slow, get a coffee</li></ul>');
     fileonly = path.basename(filelist[0], path.extname(filelist[0]));
-    giffile = workdir + '/' + fileonly + '.gif';
+    //giffile = workdir + '/' + fileonly + '.gif';
     //$('#loading-container').show();
     $('#myProgress').show();
     $('button').hide();
@@ -551,12 +551,13 @@ function preview() {
     var vftext = 'scale=iw*min(1\\,min(600/iw\\,480/ih)):-1,setsar=1,scale=trunc(in_w/2)*2:trunc(in_h/2)*2';
     myqueue.push(setupselect());
     if (!fs.existsSync(outfile)) {
-        if (canplay != "") {
-            if ( ismac ){
-                myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-an', '-y', '-vf', vftext, outfile]));
+        if (canplay == "") {
+            if(ismac){
+                var infile = filelist[0];
             } else {
-                myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-i', filelist[0], '-an', '-y', '-vf', vftext, outfile], { windowsVerbatimArguments: true }));
+                var infile = winoriginal;
             }
+            myqueue.push(customSpawn(ffmpegpath, ['-i', infile, '-an', '-y', '-vf', vftext, outfile]));
             myqueue.push(previewdump(1, outfile));
         } else {
             myqueue.push(previewdump(1, filelist[0]));
@@ -573,7 +574,7 @@ function preview() {
 
 function previewdump(i, file) {
     return () => new Promise((resolve, reject) => {
-        newhelp = '<ul><li>Drag the start and stop sliders to trim your clip</li><li>Click the <span class=bordered>PREVIEW</span> button to see what your gif will look like when it plays</li><li>You can also use the <span class=bordered>SPACEBAR</span> to start and pause your clip</li><li>Pay special attention to the loop point for a seemless gif</li><li>You can also use your keyboard ARROW KEYS <ul id=arrowkeys><li>&#8593;</li><li>&#8592;</li><li>&#8595;</li><li>&#8594;</li></ul> to fine tune your selection</li><li>As of early 2018, Twitter limits gif duration to 30 seconds</li></ul>';
+        newhelp = '<ul><li>Drag the start and stop sliders to trim your clip</li><li>Click the <span class=bordered>PREVIEW</span> button to preview your selection</li><li>You can also use the <span class=bordered>SPACEBAR</span> to start and pause your clip</li><li>You can also use your keyboard ARROW KEYS <ul id=arrowkeys><li>&#8593;</li><li>&#8592;</li><li>&#8595;</li><li>&#8594;</li></ul> to fine tune your selection</li></ul>';
         if (!helpviewing) {
             $('#helpmodal').html(newhelp);
         } else {
@@ -640,18 +641,11 @@ var fullvid = 0;
 $('#fullvid').click(function() {
     window.t0 = performance.now();
     fullviding = 1;
-    $('#options').hide();
-    $('button').hide();
-    $('#helpmodal').html('<ul><li>Please wait while vidSmooth performs actual magic</li><li>If your endpoint was a specific file size, this might take a while</li></ul>');
+    $('#options,button,#gifmbwrap,#selecttrim,#canvaswrap,.btn').hide();
+    $('#helpmodal').html('<ul><li>Please wait while vidSmooth performs actual magic</li></ul>');
     $('.dimentionsselectioncontainer').hide();
-    $('#gifmbwrap').hide();
-    $('#myProgress').show();
-    $('#selecttrim').hide();
-    $('#canvaswrap').hide();
-    $('.btn').hide();
-    $('#message').html('smoothing your video');
-    $('#message').show();
-    $('#cancel').show();
+    $('#myProgress,#cancel').show();
+    $('#message').html('smoothing your video').show();
     var myqueue = [];
     myqueue.push(progress(0));
     if (!fs.existsSync(workdir)) {
@@ -671,17 +665,17 @@ $('#fullvid').click(function() {
     var camera = $('#camera').val();
     var crop = $('#crop').val();
     var tripod = $('#tripod').val();
-    var trf = workdir + '/transforms.trf';
     var deshake = 'vidstabtransform=' + 'optalgo=' + camera + ':crop=' + crop + ':smoothing=' + selectedsmooth + ':input=' + trf + ':relative=1:maxshift=' + selectedmaxshift + ':maxangle=' + selectedMaxAngle + ',unsharp=5:5:0.8:3:3:0.4';
     var transformvf = 'vidstabdetect=' + 'result=' + trf + ':shakiness=' + selectedshakiness + ':accuracy=' + selectedaccuracy;
-    var finalFile = workdir + '/final.mp4';
-    if (ismac){
-        myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-']));
-        myqueue.push(customSpawn(ffmpegpath, ['-i', filelist[0], '-y', '-crf','17','-vf', deshake, finalFile]));
+    if(ismac){
+        var finalFile = workdir + '/final.mp4';
+        var infile = filelist[0];
     } else {
-        myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-i', filelist[0], '-y', '-vf', transformvf, '-f', 'null', '-'], { windowsVerbatimArguments: true }));
-        myqueue.push(customSpawn('cmd.exe', ['/c', '"'+'"'+ffmpegpath+'"'+'"', '-i', filelist[0], '-y', '-crf','17','-vf', deshake, finalFile], { windowsVerbatimArguments: true }));
+        var finalFile = workdir + '\\final.mp4';
+        var infile = winoriginal;
     }
+        myqueue.push(customSpawn(ffmpegpath, ['-i', infile, '-y', '-vf', transformvf, '-f', 'null', '-']));
+        myqueue.push(customSpawn(ffmpegpath, ['-i', infile, '-y', '-crf', '17', '-vf', deshake, finalFile]));
     myqueue.push(progress(1));
     myqueue.push(showfinal(1));
     queue(myqueue).then(([cmd, args]) => {
@@ -712,12 +706,13 @@ function showfinal(i) {
     return () => new Promise((resolve, reject) => {
         //var timeleft = parseInt($('#label').css('width')) * 30;
         var timeleft = 0;
-        newhelp = '<ul><li>Your gif is done, now do a little dance!</li><li>If you don\'t like the gif, start over</li><li>If you do like the gif, click and drag your gif to its destination</li><li>You can open a tweet and drag your gif straight into it, add some text and you\'re off to the races</li><li>You can drag your gif onto an app for further editing, like Photoshop</li><li>Of course, you can drag your gif to a specific folder to save it for later</li></ul>';
+        newhelp = '<ul><li>Your smoothing is done, now do a little dance!</li><li>If you don\'t like the final result, click Start Over</li><li>If you\'re happy, click Save and choose a name and location.</li></ul>';
         if (!helpviewing) {
             $('#helpmodal').html(newhelp);
         } else {
             helppending = true;
         }
+
         //$('#message').delay(timeleft).html('Done! Drag your gif to an app, location, or tweet');
         $("#message").show();
         $("#message").html('Done!'); // Drag your gif to an app, location, or tweet');
@@ -730,7 +725,7 @@ function showfinal(i) {
             event.preventDefault()
             ipcRenderer.send('ondragstart', workdir + '/final.mp4')
         }
-        $('#myProgress').hide();
+        $('#myProgress,#cancel').hide();
         $('#finalsize').show();
         $('#save').show();
         $('#restart').show();
@@ -761,19 +756,11 @@ $('#save').click(function() {
         fs.copyFile(finalfile, filename, (err) => {
             if (err) throw err;
             console.log('source.txt was copied to destination.txt');
+            shell.openItem(path.dirname(filename));
+            focusFinder();
+            $('#save').html('Saved');
         });
-        shell.openItem(path.dirname(filename));
-        if (ismac) {
-            spawn(appswitchpath, ['-a', 'Finder']);
-        } else {
-            spawn('cmd.exe', ['/c', 'call', '"'+sendkeysbatpath+'"', '"vidSmooth"', '""'], {
-                windowsVerbatimArguments: true
-            });
-        }
-        $('#save').html('Saved');
-        //$('#save').css('pointer-events', 'none'); //.prop('disabled', true); //disable
-        //$('#save').hide();
-        //$('#postSaveMessage').show();
+
     }).catch(err => {
         console.log(err)
     })
@@ -799,20 +786,11 @@ $('#savesample').click(function() {
         var finalfile = workdir + '/merged.mp4';
         fs.copyFile(finalfile, filename, (err) => {
             if (err) throw err;
-            console.log('source.txt was copied to destination.txt');
+            shell.openItem(path.dirname(filename));
+            focusFinder();
+            $('#save').html('Saved');
         });
-        shell.openItem(path.dirname(filename));
-        if (ismac) {
-            spawn(appswitchpath, ['-a', 'Finder']);
-        } else {
-            spawn('cmd.exe', ['/c', 'call', '"'+sendkeysbatpath+'"', '"vidSmooth"', '""'], {
-                windowsVerbatimArguments: true
-            });
-        }
-        $('#save').html('Saved');
-        //$('#save').css('pointer-events', 'none'); //.prop('disabled', true); //disable
-        //$('#save').hide();
-        //$('#postSaveMessage').show();
+
     }).catch(err => {
         console.log(err)
     })
@@ -824,14 +802,6 @@ const {
 } = require('electron');
 
 ipcRenderer.send('resethtmlsize', '1');
-
-var codec;
-
-function getcodec(file) {
-    var ffprobe = spawnsync(ffprobepath, ['-print_format', 'json', '-show_streams', '-i', file]);
-    var ffprobeOb = JSON.parse(ffprobe.stdout);
-    return ffprobeOb.streams[0].codec_name;
-}
 
 $('#help').click(function() {
     $('#helpmodalwrap').fadeIn();
@@ -849,16 +819,19 @@ $('#helpmodalwrap').click(function() {
 var selectedsmooth, selectedmaxshift, selectedMaxAngle, selectedshakiness, selectedaccuracy;
 
 function showoptions() {
-    $('#result').hide();
-    $("button").hide();
-    $("#selecttrim").hide();
-    $("#openmodalwrap").hide();
-    $('#sample').show();
-    $('#fullvid').show();
-    $('#message').hide();
-    $('#options').show();
+        if (!fs.existsSync(workdir)) {
+        fs.mkdirSync(workdir);
+        }
+        if(!ismac){
+            winoriginal = workdir + '\\original' + path.extname(filelist[0]);
+            fs.copyFile(filelist[0], winoriginal, (err) => {
+                if (err) throw err;
+            });
+        }
+    $('#result,button,#selecttrim,#openmodalwrap,#message').hide();
+    $('#restart,#fullvid,#options,#sample').show();
     //$('#helpmodal').html('<ul><li>Please wait while vidSmooth performs actual magic</li><li>If your endpoint was a specific file size, this might take a while</li></ul>');
-    $('#helpmodal').html('<p><ul><li>accuracy<br><ul><li>Set the accuracy of the detection process. It must be a value in the range 1-15. A value of 1 means low accuracy, a value of 15 means high accuracy. Default value is 15.</ul><li>shakiness<br><ul><li>Set the shakiness of input video or quickness of camera. It accepts an integer in the range 1-10, a value of 1 means little shakiness, a value of 10 means strong shakiness. Default value is 5.</ul><li>smoothing<br><ul><li>Set the number of frames (value*2 + 1), used for lowpass filtering the camera movements. Default value is 10.<br>For example, a number of 10 means that 21 frames are used (10 in the past and 10 in the future) to smoothen the motion in the video. A larger value leads to a smoother video, but limits the acceleration of the camera (pan/tilt movements). 0 is a special case where a static camera is simulated.</ul><li>maxshift<br><ul><li>Set maximal number of pixels to translate frames. </ul><li>maxangle<br><ul><li>Set maximal angle in radians (degree*PI/180) to rotate frames. </ul><li>crop method<br><ul><li>Specify how to deal with empty frame borders that may be shrinked-in due to movement compensation. Available values are:<br>keep: Keep image information from previous frame (default).<br>black: Fill the border-areas black.</ul><li>camera path<br><ul><li>Set the camera path optimization algorithm. Accepted values are:<br>gauss: Gaussian kernel low-pass filter on camera motion (default).<br>avg: Averaging on transformations.</ul><li>tripod<br><ul><li>Enables virtual tripod mode if set to "on", which is equivalent to smoothing=0. Default value is "off".</ul></ul>');
+    $('#helpmodal').html('<p><ul><li>accuracy<br><ul><li>Set the accuracy of the detection process. It must be a value in the range 1-15. A value of 1 means low accuracy, a value of 15 means high accuracy. Default value is 15.</ul><li>shakiness<br><ul><li>Set the shakiness of input video or quickness of camera. It accepts a integer in the range 1-10, a value of 1 means little shakiness, a value of 10 means strong shakiness. Default value is 5.</ul><li>smoothing<br><ul><li>Set the number of frames (value*2 + 1), used for lowpass filtering the camera movements. Default value is 10.<br>For example, a number of 10 means that 21 frames are used (10 in the past and 10 in the future) to smoothen the motion in the video. A larger value leads to a smoother video, but limits the acceleration of the camera (pan/tilt movements). 0 is a special case where a static camera is simulated.</ul><li>maxshift<br><ul><li>Set maximal number of pixels to translate frames. </ul><li>maxangle<br><ul><li>Set maximal angle in radians (degree*PI/180) to rotate frames. </ul><li>crop method<br><ul><li>Specify how to deal with empty frame borders that may be shrinked-in due to movement compensation. Available values are:<br>keep: Keep image information from previous frame (default).<br>black: Fill the border-areas black.</ul><li>camera path<br><ul><li>Set the camera path optimization algorithm. Accepted values are:<br>gauss: Gaussian kernel low-pass filter on camera motion (default).<br>avg: Averaging on transformations.</ul><li>tripod<br><ul><li>Enables virtual tripod mode if set to "on", which is equivalent to smoothing=0. Default value is "off".</ul></ul>');
     selectedsmooth = store.get('selectedsmooth') || 200;
     var pipFormatssmooth = {
         '0': '0',
@@ -1053,10 +1026,10 @@ $('select').each(function() {
     }
 });
 
-$('#ffmpegsource').click(function(){
-    var ffmpegsrc = appRootDir+'/ffmpeg';
+$('#ffmpegsource').click(function() {
+    var ffmpegsrc = appRootDir + '/ffmpeg';
     shell.openItem(ffmpegsrc);
 });
-$('#gpl').click(function(){
-    var url="http://www.gnu.org/licenses/old-licenses/gpl-2.0.html";
-  });
+$('#gpl').click(function() {
+    var url = "http://www.gnu.org/licenses/old-licenses/gpl-2.0.html";
+});

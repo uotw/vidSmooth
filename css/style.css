@@ -12,8 +12,7 @@ button#createsample {
     margin-bottom: 60px;
     }
 #options{
-margin-top: 60px;
-width:90%;
+width:85%;
 display:none;
 margin-left:5%;
 margin-right:5%;
@@ -149,7 +148,10 @@ body {
   height: 100%;
   width: 100%;
   margin: 0;
+  padding: 0;
+    overflow: hidden;
 }
+
 
 *:hover {
   cursor: default;
@@ -157,7 +159,7 @@ body {
 
 body {
   font: 1em BlinkMacSystemFont;
-  overflow: hidden;
+
 }
 
 h1 {
@@ -292,6 +294,7 @@ div#result {
   justify-content: center;
   flex-direction: column;
   height: 100%;
+  width: 100%;
 }
 
 #drag > div {
@@ -300,18 +303,17 @@ div#result {
 
 #drag > p {
   font-size: 1em;
-  margin-top: -2px;
+  margin-top: 0px;
 }
 
 #filelistwrap {
   border: 3px dashed #999;
-  margin-left: 3%;
-  margin-right: 3%;
   height: calc(100% - 200px);
-  width: 94%;
-  float: left;
-  margin-top: 10px;
+  width: 90%;
+  margin:auto;
+  margin-top: 0px;
   z-index: 5;
+
 }
 
 #canvaswrap {
@@ -363,7 +365,7 @@ div#result {
 #maintitle {
   color: #404040;
   padding-bottom: 10px;
-  margin-left: 16px;
+  margin-left: 5%;
 }
 
 #loading-container {
@@ -887,27 +889,34 @@ img#finalgiffile {
 }
 
 #help {
-  position: fixed;
-  right: 16px;
-  top: 16px;
-  background: black;
-  color: white;
-  padding-left: 4px;
-  padding-right: 4px;
-  padding-top: 1px;
-  padding-bottom: 1px;
-  z-index: 5;
+    position: fixed;
+    right: 16px;
+    top: 16px;
+    background: black;
+    color: white;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 5px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    z-index: 5;
 }
 
 #help:hover {
   transition: .2s;
-  background: white;
+  background-color: white;
   border: solid 1px black;
   color: black;
-  padding-left: 3px;
-  padding-right: 3px;
-  padding-top: 0px;
-  padding-bottom: 0px;
+    position: fixed;
+    right: 16px;
+    top: 16px;
+    padding-left: 5px;
+    padding-right: 5px;
+    border-radius: 5px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    z-index: 5;
+
 }
 
 #helpmodal {
@@ -922,7 +931,8 @@ img#finalgiffile {
   border: solid 2px white;
   border-radius: 5px;
   padding-right: 15px;
-  width: 650px;
+  width: 90%;
+  font-size: 14px;
 }
 
 #helpmodalwrap {

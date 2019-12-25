@@ -21,6 +21,7 @@
                <li>Under the hood, vidSmooth uses electron and ffmpeg.</li>
                <li>FFmpeg is licensed under a <span id=gpl>GNU General Public License (GPL) version 2</span></li>
                <li><span id=ffmpegsource>Click here</span> to view the ffmpeg source code</li>
+               <li>Icon used here: Image stabilization by Creaticca Creative Agency from the Noun Project</li>
             </ul>
          </div>
       </div>
@@ -40,7 +41,7 @@
          </svg>
          <h1>vidSmooth</h1>
          <div id="copyright">
-            Copyright 2019 Ben C. Smith, MD, FACEP
+            ©2020 Ben C. Smith, MD, FACEP
          </div>
       </div>
       <div id="filelistwrap">
@@ -113,10 +114,9 @@
          <div id="message">Select the preview clip</div>
          <div id=finalsize></div>
          <div id=poster></div>
+         <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="restart"  style="display:none">Start Over</button>
          <button type="button" class="rightbtn btn btn-outlined btn-black btn-lg" id="sample" style="display:none" >Sample</button>
          <button type="button" class="rightbtn btn btn-outlined btn-black btn-lg" id="fullvid" style="display:none" >Full Video</button>
-         <button type="button" class="rightbtn btn btn-outlined btn-black btn-lg" id="gifok" style="display:none" >Make Gif</button>
-         <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="restart"  style="display:none">Start Over</button>
          <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="savesample" style="display:none">Save Sample</button>
          <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="cancel"  style="display:none">Cancel</button>
          <button type="button" class="leftbtn btn btn-outlined btn-black btn-lg" id="changesettings" style="display:none">Change Settings</button>
@@ -133,13 +133,14 @@
       // You can also require other files to run in this process
       window.$ = window.jQuery = require('jquery');
       require('./renderer.js');
-      require('./js/cropselect.js');
    </script>
    <script type="text/javascript" src="js/nouislider.min.js"></script>
    <script type="text/javascript" src="js/slider.js"></script>
    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
    <script>if (window.module) module = window.module; var $ = require('jQuery');</script>
-   <script>window.twttr = (function(d, s, id) {
+   <script>
+      /*
+      window.twttr = (function(d, s, id) {
       var js, fjs = d.getElementsByTagName(s)[0],
         t = window.twttr || {};
       if (d.getElementById(id)) return t;
@@ -155,5 +156,6 @@
 
       return t;
       }(document, "script", "twitter-wjs"));
+      */
    </script>
 </html>
