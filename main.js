@@ -108,7 +108,7 @@ const {ipcMain} = require('electron');
 ipcMain.on('ondragstart', (event, filePath) => {
   event.sender.startDrag({
     file: filePath,
-    icon: 'img/giffile.png'
+    icon: 'img/video_icon.png'
   })
 })
 
