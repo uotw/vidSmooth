@@ -837,7 +837,7 @@ function showfinal(i) {
 
         //$('#result').append(cliphtml).css('display', 'block');
         document.getElementById('final').ondragstart = (event) => {
-            event.preventDefault()
+            event.preventDefault();
             ipcRenderer.send('ondragstart', workdir + '/final.mp4')
         }
         $('#myProgress,#cancel').hide();
@@ -1145,3 +1145,42 @@ $('#ffmpegsource').click(function() {
 $('#gpl').click(function() {
     var url = "http://www.gnu.org/licenses/old-licenses/gpl-2.0.html";
 });
+
+var xStart,yStart;
+var isDragging = false;
+$("#expand")
+.mousedown(function(e) {
+    isDragging = true;
+    xStart = e.pageX;
+    yStart = e.pageY;
+
+});
+$(document).mouseup(function() {
+    isDragging = false;
+});
+
+$(document).mousemove(function(e) {
+    if(isDragging == true ){
+        xDist = document.body.clientWidth + e.pageX - xStart;
+        yDist = document.body.clientHeight + e.pageY - yStart + 52;
+        xStart = e.pageX;
+        yStart = e.pageY;
+        // if( document.body.clientWidth  - e.pageX < 50 ){
+        //     xDist = document.body.clientWidth + e.pageX - xStart;
+        //     xStart = e.pageX;
+        // } else {
+        //     xDist = document.body.clientWidth;
+        // }
+
+        // if( document.body.clientHeight  - e.pageY < 50 ){
+        //     yDist = document.body.clientHeight + e.pageY - yStart + 52;
+        //     yStart = e.pageY;
+        // } else {
+        //     yDist = document.body.clientHeight + 52;
+        // }
+
+        var newsize = {width: xDist, height: yDist};
+        ipcRenderer.send('expandWindow', newsize);
+        //console.log(yDist);
+    }
+ });

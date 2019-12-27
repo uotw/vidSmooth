@@ -1,4 +1,30 @@
-td.dropdowns {
+#expand{
+    cursor: nwse-resize;
+    margin: 2px;
+    width:50px;
+    height:50px;
+    position: fixed;
+    right:0;
+    bottom:0;
+    background: linear-gradient(
+      -45deg,
+        #fff,
+        #fff 9%,
+        #797979 9%,
+        #797979 12%,
+        #fff 12%,
+        #fff 15%,
+        #797979 15%,
+        #797979 18%,
+        #fff 18%,
+        #fff 21%,
+        #797979 21%,
+        #797979 24%,
+        #fff 24%
+)
+  }
+
+  td.dropdowns {
     text-align: center;
 }
 table {

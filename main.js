@@ -133,6 +133,28 @@ ipcMain.on('resethtmlsize', (event, arg) => {
         mainWindow.webContents.executeJavaScript("$('body').css('width','"+width+"px');");
 });
 
+
+ipcMain.on('expandWindow', (event, newsize) => {
+        // var size=mainWindow.getSize();
+        // var height=newsize.height;
+        // // var newheight=height-52;
+        // var width=newsize.width;
+
+        // // var newwidth=width+delta.width;
+        // // var newheight=height+delta.height;
+        //var cssnewheight = newsize.height;
+        mainWindow.setSize(newsize.width, newsize.height);
+        if(newsize.width > mainWindow.minWidth){
+           mainWindow.webContents.executeJavaScript("$('html').css('width','"+newsize.width+"px');");
+           mainWindow.webContents.executeJavaScript("$('body').css('width','"+newsize.width+"px');");
+         }
+        if(newsize.height > mainWindow.minHeight){
+          mainWindow.webContents.executeJavaScript("$('body').css('height','"+newsize.height+"px');");
+          mainWindow.webContents.executeJavaScript("$('html').css('height','"+newsize.height+"px');");
+        }
+});
+
+
 //exports.sethtmlsize = () = sethtmlsize();
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
