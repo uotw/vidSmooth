@@ -1,5 +1,11 @@
 # vidSmooth
 This is an [Electron app](https://electronjs.org/) written as a frontend for [ffmpeg](https://www.ffmpeg.org/) using the new [vid.Stab](https://github.com/georgmartius/vid.stab) library. vidSmooth takes an input video and outputs a stabilized version in high quality mp4/h264 format.
+
+## Install
+Download and install for your OS:
+[MacOS](https://www.sonoclipshare.com/vidSmooth/vidSmooth.v0.0.1.Installer.dmg) (dmg, 140MB)
+[Windows](https://www.sonoclipshare.com/vidSmooth/vidSmooth.v0.0.1.Installer.exe) (exe, 96 MB)
+
 ## Features
 - Any codec supported by ffmpeg will be supported as an input video (mp4, m4v, avi, wmv, mov, flv, mpg, mpeg, gif)
 - Most settings vidStab uses as input are exposed to the user
