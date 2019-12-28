@@ -3,8 +3,8 @@ This is an [Electron app](https://electronjs.org/) written as a frontend for [ff
 
 ## Install
 Download and install for your OS:
-[MacOS](https://www.sonoclipshare.com/vidSmooth/vidSmooth.v0.0.1.Installer.dmg) (dmg, 140MB)
-[Windows](https://www.sonoclipshare.com/vidSmooth/vidSmooth.v0.0.1.Installer.exe) (exe, 96 MB)
+- [MacOS](https://www.sonoclipshare.com/vidSmooth/vidSmooth.v0.0.1.Installer.dmg) (dmg, 140MB)
+- [Windows](https://www.sonoclipshare.com/vidSmooth/vidSmooth.v0.0.1.Installer.exe) (exe, 96 MB)
 
 ## Features
 - Any codec supported by ffmpeg will be supported as an input video (mp4, m4v, avi, wmv, mov, flv, mpg, mpeg, gif)
