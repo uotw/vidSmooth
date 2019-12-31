@@ -25,16 +25,16 @@ if (os.platform() == "darwin") {
     var ismac = 0;
 }
 if (ismac) {
-    var ffmpegpath = appRootDir + '/binariesMac/ffmpeg';
-    var ffprobepath = appRootDir + '/binariesMac/ffprobe';
-    var appswitchpath = appRootDir + '/binariesMac/appswitch';
+    var ffmpegpath = appRootDir + '/bin/osx/ffmpeg';
+    var ffprobepath = appRootDir + '/bin/osx/ffprobe';
+    var appswitchpath = appRootDir + '/bin/osx/appswitch';
     var workdir = ostemp + '/' + maketemp();
     var trf = workdir + '/transforms.trf';
 } else {
     var winoriginal;
-    var ffmpegpath = appRootDir + '\\binariesWin\\ffmpeg.exe';
-    var ffprobepath = appRootDir + '\\binariesWin\\ffprobe.exe';
-    var sendkeysbatpath = appRootDir + '\\binariesWin\\sendKeys.bat';
+    var ffmpegpath = appRootDir + '\\bin\\win\\ffmpeg.exe';
+    var ffprobepath = appRootDir + '\\bin\\win\\ffprobe.exe';
+    var sendkeysbatpath = appRootDir + '\\bin\\win\\sendKeys.bat';
     var temporiginal = workdir + '\\temp.mp4';
     var workdir = ostemp + '\\' + maketemp();
     var unixify = require('unixify');
