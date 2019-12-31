@@ -5,7 +5,8 @@
   "description": "Create a high quality gif from any clip.",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build-mac": "electron-packager . 'vidSmooth' --platform=darwin --arch=x64 --icon='icon.icns' --overwrite && open vidSmooth-darwin-x64"
   },
   "keywords": [
     "Electron"
@@ -17,7 +18,8 @@
   },
   "homepage": "https://www.ultrasoundoftheweek.com/vidSmooth",
   "devDependencies": {
-    "electron": "^7.1.7"
+    "electron": "^7.1.7",
+    "electron-packager": "^14.1.1"
   },
   "directories.bin": "node_modules/.bin/",
   "dependencies": {

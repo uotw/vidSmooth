@@ -16,8 +16,8 @@ var kill = require('tree-kill');
 const {
     shell
 } = require('electron');
-var appRootDir = require('app-root-dir').get();
-var ffmpegsrc = appRootDir + '/ffmpeg/';
+const appRootDir = require('app-root-dir').get();
+// var ffmpegsrc = appRootDir + '/ffmpeg/';
 var os = require("os");
 if (os.platform() == "darwin") {
     var ismac = 1;
@@ -25,9 +25,9 @@ if (os.platform() == "darwin") {
     var ismac = 0;
 }
 if (ismac) {
-    var ffmpegpath = appRootDir + '/node_modules/ffmpeg/ffmpeg';
-    var ffprobepath = appRootDir + '/node_modules/ffmpeg/ffprobe';
-    var appswitchpath = appRootDir + '/node_modules/ffmpeg/appswitch';
+    var ffmpegpath = appRootDir + '/binaries/ffmpeg';
+    var ffprobepath = appRootDir + '/binaries/ffprobe';
+    var appswitchpath = appRootDir + '/binaries/appswitch';
     var workdir = ostemp + '/' + maketemp();
     var trf = workdir + '/transforms.trf';
 } else {
