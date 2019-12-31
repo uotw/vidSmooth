@@ -355,6 +355,9 @@ function customSpawn(command, args) {
                     }
                     var percdone = offset + mult * currenttime / length;
                     if (!isNaN(percdone)) {
+                        if(percdone>1){
+                            percdone = 1;
+                        }
                         var perctext = '[' + (percdone * 100).toFixed(2) + '% done]';
                         $('#message').html('smoothing your video<br>' + perctext);
                     }
