@@ -32,9 +32,9 @@ if (ismac) {
     var trf = workdir + '/transforms.trf';
 } else {
     var winoriginal;
-    var ffmpegpath = appRootDir + '\\node_modules\\ffmpeg\\ffmpeg.exe';
-    var ffprobepath = appRootDir + '\\node_modules\\ffprobe\\ffprobe.exe';
-    var sendkeysbatpath = appRootDir + '\\sendKeys.bat';
+    var ffmpegpath = appRootDir + '\\binaries\\ffmpeg\\ffmpeg.exe';
+    var ffprobepath = appRootDir + '\\binaries\\ffprobe\\ffprobe.exe';
+    var sendkeysbatpath = appRootDir + '\\binaries\\sendKeys.bat';
     var temporiginal = workdir + '\\temp.mp4';
     var workdir = ostemp + '\\' + maketemp();
     var unixify = require('unixify');
