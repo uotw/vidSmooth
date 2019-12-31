@@ -32,6 +32,4 @@ Download and install for your OS:
 - `git clone https://github.com/uotw/vidSmooth.git`
 - `cd vidSmooth`
 - `npm install`
-- install ffmpeg, ffprobe static binaries for your OS ([[MacOS](https://evermeet.cx/ffmpeg/)][[Windows](https://ffbinaries.com/downloads)]) per [these instructions](https://stackoverflow.com/questions/33152533/bundling-precompiled-binary-into-electron-app/38373289#38373289)  - make sure they are compiled with at least h264 and vidStab
-- if on MacOS, install [appswitch](https://sabi.net/nriley/software/#appswitch) binary per above instructions
 - `npm start`
