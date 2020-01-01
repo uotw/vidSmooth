@@ -25,16 +25,16 @@ if (os.platform() == "darwin") {
     var ismac = 0;
 }
 if (ismac) {
-    var ffmpegpath = appRootDir + '/bin/osx/ffmpeg';
-    var ffprobepath = appRootDir + '/bin/osx/ffprobe';
-    var appswitchpath = appRootDir + '/bin/osx/appswitch';
+    var ffmpegpath = 'bin/osx/ffmpeg';
+    var ffprobepath = 'bin/osx/ffprobe';
+    var appswitchpath = 'bin/osx/appswitch';
     var workdir = ostemp + '/' + maketemp();
     var trf = workdir + '/transforms.trf';
 } else {
     var winoriginal;
-    var ffmpegpath = appRootDir + '\\bin\\win\\ffmpeg.exe';
-    var ffprobepath = appRootDir + '\\bin\\win\\ffprobe.exe';
-    var sendkeysbatpath = appRootDir + '\\bin\\win\\sendKeys.bat';
+    var ffmpegpath =  'bin\\win\\ffmpeg.exe';
+    var ffprobepath = 'bin\\win\\fprobe.exe';
+    var sendkeysbatpath = 'bin\\win\\endKeys.bat';
     var temporiginal = workdir + '\\temp.mp4';
     var workdir = ostemp + '\\' + maketemp();
     var unixify = require('unixify');
@@ -1143,7 +1143,7 @@ $('select').each(function() {
 });
 
 $('#ffmpegsource').click(function() {
-    var ffmpegsrc = appRootDir + '/ffmpeg';
+    var ffmpegsrc = 'ffmpeg';
     shell.openItem(ffmpegsrc);
 });
 $('#gpl').click(function() {
