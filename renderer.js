@@ -16,7 +16,6 @@ var kill = require('tree-kill');
 const {
     shell
 } = require('electron');
-const appRootDir = require('app-root-dir').get();
 // var ffmpegsrc = appRootDir + '/ffmpeg/';
 var os = require("os");
 if (os.platform() == "darwin") {
