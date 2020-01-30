@@ -28,7 +28,8 @@ function createWindow () {
     'height': mainWindowState.height,
     'minWidth':950,
     'minHeight':736,
-    'show':false
+    'show':false,
+    'resizable':true
 
   });
 sethtmlsize();
@@ -45,7 +46,7 @@ mainWindow.webContents.on('did-finish-load', function() {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 1100, height: 750})
 */
-  mainWindow.setResizable(true);
+  //mainWindow.setResizable(true);
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`)
 
