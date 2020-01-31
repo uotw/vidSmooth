@@ -6,8 +6,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build-mac": "electron-packager . 'vidSmooth' --platform=darwin --arch=x64 --icon='icon.icns' --overwrite && open vidSmooth-darwin-x64",
-    "build-win": "electron-packager . 'vidSmooth' --platform=win32 --arch=ia32  --overwrite"
+    "build-mac": "electron-packager . 'vidSmooth' --platform=darwin --arch=x64 --icon='icon.icns' --overwrite --ignore=bin/win && open vidSmooth-darwin-x64",
+    "build-win": "electron-packager . 'vidSmooth' --platform=win32 --arch=ia32  --overwrite --ignore=bin/osx"
   },
   "keywords": [
     "Electron"
