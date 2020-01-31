@@ -6,7 +6,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build-mac": "electron-packager . 'vidSmooth' --platform=darwin --arch=x64 --icon='icon.icns' --overwrite && open vidSmooth-darwin-x64"
+    "build-mac": "electron-packager . 'vidSmooth' --platform=darwin --arch=x64 --icon='icon.icns' --overwrite && open vidSmooth-darwin-x64",
+    "build-win": "electron-packager . 'vidSmooth' --platform=win32 --arch=ia32  --overwrite"
   },
   "keywords": [
     "Electron"
@@ -23,6 +24,7 @@
   },
   "directories.bin": "node_modules/.bin/",
   "dependencies": {
+    "app-root-dir": "^1.0.2",
     "dialogue": "0.0.0",
     "electron-store": "^5.1.0",
     "electron-window-state": "^4.1.1",

@@ -2,6 +2,7 @@ const {
     desktopCapturer,
     screen
 } = require('electron');
+var appRootDir = require('app-root-dir').get();
 var remote = require('electron').remote;
 var pid = remote.process.pid;
 var dialog = remote.dialog;
