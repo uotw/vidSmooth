@@ -32,7 +32,8 @@
     "os-tmpdir": "^1.0.2",
     "path": "^0.12.7",
     "shelljs": "^0.7.6",
-    "tree-kill": "^1.2.2"
+    "tree-kill": "^1.2.2",
+    "unixify": "^1.0.0"
   },
   "productName": "vidSmooth"
 }
