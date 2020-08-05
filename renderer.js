@@ -33,7 +33,7 @@ if (ismac) {
 } else {
     var winoriginal;
     var ffmpegpath =  appRootDir + '\\bin\\win\\ffmpeg.exe';
-    var ffprobepath = appRootDir + '\\bin\\win\\fprobe.exe';
+    var ffprobepath = appRootDir + '\\bin\\win\\ffprobe.exe';
     var sendkeysbatpath = appRootDir + '\\bin\\win\\sendKeys.bat';
     var temporiginal = workdir + '\\temp.mp4';
     var workdir = ostemp + '\\' + maketemp();
