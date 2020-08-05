@@ -28,7 +28,7 @@
     "dialogue": "0.0.0",
     "electron-store": "^5.1.0",
     "electron-window-state": "^4.1.1",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "os-tmpdir": "^1.0.2",
     "path": "^0.12.7",
     "shelljs": "^0.7.6",
