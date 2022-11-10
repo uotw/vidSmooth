@@ -19,7 +19,7 @@
   },
   "homepage": "https://www.ultrasoundoftheweek.com/vidSmooth",
   "devDependencies": {
-    "electron": "^7.1.7",
+    "electron": "^18.3.7",
     "electron-packager": "^14.1.1"
   },
   "directories.bin": "node_modules/.bin/",
